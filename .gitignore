@@ -4,3 +4,5 @@ users/
 test.py
 request.py
 Reader.code-workspace
+.gitattributes
+.gitignore
