@@ -269,3 +269,5 @@ function resumeAutoScroll() {
     console.log("恢復自動滾動");
     scrollToCurrentLine(readingLine); // 滾動到當前朗讀行
 }
+
+

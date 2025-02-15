@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        const token = localStorage.getItem("auth_token");
+      
+        if (token) {
+            fetch("/api/user", {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "/home";  // Token 有效，進入 /home
+                } else {
+                    throw new Error("未登入");
+                }
+            })
+            .catch(() => {
+                window.location.href = "/login";  // Token 無效，進入 /login
+            });
+        } else {
+            window.location.href = "/login";  // 沒有 Token，進入 /login
+        }
+      </script>
+      
+</body>
+</html>
