@@ -50,29 +50,40 @@ def index():
     return redirect(url_for("loginPage"))  # 未登入，轉向 /login
 
 @app.route("/home")
-@jwt_required()
 def home():
-    return render_template("Reading.html")  # 這裡回傳 HTML
+    try:
+        verify_jwt_in_request(optional=True)  # 嘗試檢查 JWT
+        identity = get_jwt_identity()
+        if identity:
+            return render_template('Reading.html')  # 已登入，進入 /home
+    except:
+        pass  # JWT 無效或缺失，視為未登入
+
+    return redirect("/login")  # 這裡回傳 HTML
 
 @app.route("/login")
 def loginPage():
     return render_template("Login.html")  # 這裡回傳 HTML
 
+@app.route('/register')
+def registerPage():
+    return render_template('Register.html')
+
 @app.route("/proccess",methods=['POST'])
 def call_VITS_API():
     data = request.get_json()
     print(data)
-    # url = proccess_URL(data)
-    # response = requests.get(url)
-    # if response:
-    #     print("----------\n\nGet API Response Successfully\n\n----------")
-    # audio_data = io.BytesIO(response.content)
-    # return send_file(
-    #     audio_data,
-    #     mimetype="audio/wav",
-    #     as_attachment=True,
-    #     download_name="processed.wav"
-    # )
+    url = proccess_URL(data)
+    response = requests.get(url)
+    if response:
+        print("----------\n\nGet API Response Successfully\n\n----------")
+    audio_data = io.BytesIO(response.content)
+    return send_file(
+        audio_data,
+        mimetype="audio/wav",
+        as_attachment=True,
+        download_name="processed.wav"
+    )
 
 @app.route('/favicon.ico',methods=['GET'])
 def favicon():
@@ -110,8 +121,11 @@ def register():
 
     db.session.add(new_user)
     db.session.commit()
+    token = create_access_token(identity=Username)
 
-    return jsonify({"message": "註冊成功"}), 201
+    response = make_response(jsonify({"message": "登入成功"}))
+    set_access_cookies(response, token)  # 設定 JWT 到 Cookie
+    return response
 
 @app.route("/api/login", methods=["POST"])
 def login():

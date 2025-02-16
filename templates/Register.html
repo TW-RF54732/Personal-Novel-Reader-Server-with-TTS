@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登入</title>
+    <title>註冊</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
         .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); width: 300px; }
@@ -14,25 +14,25 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             box-sizing: border-box; /* 防止 padding 影響寬度 */
-        }        
-        button { width: 100%; padding: 10px; background: blue; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: darkblue; }
+        }         
+        button { width: 100%; padding: 10px; background: green; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: darkgreen; }
         .error { color: red; font-size: 14px; }
         a { text-decoration: none; color: blue; display: block; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>登入</h2>
+        <h2>註冊</h2>
         <p class="error" id="error-message"></p>
         <input type="text" id="username" placeholder="帳號">
         <input type="password" id="password" placeholder="密碼">
-        <button onclick="login()">登入</button>
-        <a href="/register">沒有帳號？註冊</a>
+        <button onclick="register()">註冊</button>
+        <a href="/login">已有帳號？登入</a>
     </div>
 
     <script>
-        async function login() {
+        async function register() {
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
             const errorMessage = document.getElementById("error-message");
@@ -42,7 +42,7 @@
                 return;
             }
 
-            const response = await fetch("/api/login", {
+            const response = await fetch("/api/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -51,9 +51,9 @@
 
             const result = await response.json();
             if (response.ok) {
-                window.location.href = "/home";  // 登入成功，跳轉到 /home
+                window.location.href = "/home";  // 註冊成功，跳轉登入頁
             } else {
-                errorMessage.textContent = result.error || "登入失敗";
+                errorMessage.textContent = result.error || "註冊失敗";
             }
         }
     </script>

@@ -270,4 +270,12 @@ function resumeAutoScroll() {
     scrollToCurrentLine(readingLine); // 滾動到當前朗讀行
 }
 
+async function logout() {
+    await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include"  // 讓 Cookie 被正確刪除
+    });
+
+    console.log("登出成功");
+}
 
