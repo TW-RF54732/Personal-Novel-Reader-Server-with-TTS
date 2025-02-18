@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>書櫃 - 小說閱讀器</title>
+    <link rel="stylesheet" href="home.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 📌 使用者資訊 -->
+        <div class="user-info">
+            <img id="user-avatar" src="{{ url_for('static', filename='default-avatar.png') }}" alt="頭像">
+            <h2 id="username">載入中...</h2>
+        </div>
+
+        <!-- 📌 上傳小說 -->
+        <div class="upload-section">
+            <h3>📚 上傳小說</h3>
+            <input type="file" id="upload-book" accept=".txt">
+            <button onclick="uploadBook()">上傳</button>
+        </div>
+
+        <!-- 📌 書櫃 -->
+        <div class="bookshelf">
+            <h3>📖 我的小說</h3>
+            <div id="book-list">載入中...</div>
+        </div>
+    </div>
+
+    <script src='home.js'></script>
+</body>
+</html>

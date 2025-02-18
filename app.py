@@ -10,6 +10,7 @@ import uuid
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager,unset_jwt_cookies, set_access_cookies,create_access_token, jwt_required, get_jwt_identity,verify_jwt_in_request
+import shutil
 
 #Set
 app=Flask(__name__)
@@ -25,6 +26,9 @@ jwt = JWTManager(app)
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
+
+USER_DIR = "users"
+TEMPLATE_USER = os.path.join(USER_DIR, "template_user")
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # 自動遞增 ID
@@ -122,6 +126,10 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     token = create_access_token(identity=Username)
+    
+    #setup user folder
+    user = User.query.filter_by(username=Username).first()
+    initUser(TEMPLATE_USER,USER_DIR,user.user_id)
 
     response = make_response(jsonify({"message": "登入成功"}))
     set_access_cookies(response, token)  # 設定 JWT 到 Cookie
@@ -187,7 +195,7 @@ def proccess_URL(data):
     print(saveProgress(progressLine))
     return url
 
-def saveProgress(progressLine,):
+def saveProgress(progressLine):
     json_path = os.path.join("users", "exAccount", "testBook", "progress.json")
     if not os.path.exists(json_path):
         return {"error": "進度檔不存在"}
@@ -201,7 +209,15 @@ def saveProgress(progressLine,):
         return {"error": "設定項目不存在"}
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
-    
+
+def initUser(template,dir,folderName):
+    userFolder = os.path.join(dir,str(folderName))
+    # 如果目標資料夾已存在，先刪除
+    if os.path.exists(userFolder):
+        shutil.rmtree(userFolder)
+
+    shutil.copytree(template, userFolder)  # 複製資料夾
+    print(f"資料夾已複製到 {userFolder}")
 
     
 
