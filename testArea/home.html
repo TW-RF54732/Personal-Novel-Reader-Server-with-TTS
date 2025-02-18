@@ -3,31 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>書櫃 - 小說閱讀器</title>
-    <link rel="stylesheet" href="home.css">
+    <title>書櫃管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <!-- 📌 使用者資訊 -->
-        <div class="user-info">
-            <img id="user-avatar" src="{{ url_for('static', filename='default-avatar.png') }}" alt="頭像">
-            <h2 id="username">載入中...</h2>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center">
+    <!-- 頂部導航欄 -->
+    <nav class="w-full bg-white shadow-md p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">📚 書櫃</h1>
+        <div class="flex items-center gap-4">
+            <button class="px-4 py-2 bg-blue-500 text-white rounded-lg">設定</button>
+            <img src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full" alt="User Avatar">
         </div>
+    </nav>
 
-        <!-- 📌 上傳小說 -->
-        <div class="upload-section">
-            <h3>📚 上傳小說</h3>
-            <input type="file" id="upload-book" accept=".txt">
-            <button onclick="uploadBook()">上傳</button>
+    <!-- 書目錄管理 -->
+    <div class="w-full max-w-2xl mt-6 p-4 bg-white shadow-lg rounded-lg">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">📂 新增書目錄</h2>
+            <button onclick="addFolder()" class="px-4 py-2 bg-green-500 text-white rounded-lg">+ 新增</button>
         </div>
-
-        <!-- 📌 書櫃 -->
-        <div class="bookshelf">
-            <h3>📖 我的小說</h3>
-            <div id="book-list">載入中...</div>
-        </div>
+        <input id="folderName" type="text" placeholder="輸入書目錄名稱" class="w-full p-2 border rounded mb-4">
     </div>
 
-    <script src='home.js'></script>
+    <!-- 書目錄顯示區 -->
+    <div id="bookList" class="w-full max-w-2xl mt-6 space-y-2"></div>
+
+    <script src="home.js"></script>
 </body>
 </html>

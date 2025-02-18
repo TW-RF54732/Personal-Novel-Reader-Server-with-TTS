@@ -107,7 +107,8 @@ def showProgress():
     if "progress" in data:
         s = f'{data["progress"]}'
         return str(s)
-    
+
+# API
 @app.route("/api/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -159,16 +160,16 @@ def logout():
     return response
 
 
-@app.route("/api/user", methods=["GET"])
+@app.route("/api/user/getAvatar", methods=["GET"])
 @jwt_required()
 def get_user():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
-
     if not user:
         return jsonify({"error": "使用者不存在"}), 404
-
-    return jsonify({"username": user.username})
+    user_ID = user.user_id
+    avatar_path = os.path.join(USER_DIR,f'{user_ID}/avatar.png')
+    return send_file(avatar_path, mimetype='image/png')
 
 @app.route("/api/delete_user", methods=["POST"])
 @jwt_required()
