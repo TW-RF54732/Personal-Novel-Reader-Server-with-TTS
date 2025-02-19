@@ -20,7 +20,7 @@
     <div class="w-full max-w-2xl mt-6 p-4 bg-white shadow-lg rounded-lg">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold">📂 新增書目錄</h2>
-            <button onclick="addFolder()" class="px-4 py-2 bg-green-500 text-white rounded-lg">+ 新增</button>
+            <button id="addFolderBtn" class="px-4 py-2 bg-green-500 text-white rounded-lg">+ 新增</button>
         </div>
         <input id="folderName" type="text" placeholder="輸入書目錄名稱" class="w-full p-2 border rounded mb-4">
     </div>
@@ -28,6 +28,6 @@
     <!-- 書目錄顯示區 -->
     <div id="bookList" class="w-full max-w-2xl mt-6 space-y-2"></div>
 
-    <script src="home.js"></script>
+    <script src="{{ url_for('static', filename='home.js') }}"></script>
 </body>
 </html>

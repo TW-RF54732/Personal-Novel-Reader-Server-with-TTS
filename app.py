@@ -11,6 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager,unset_jwt_cookies, set_access_cookies,create_access_token, jwt_required, get_jwt_identity,verify_jwt_in_request
 import shutil
+import base64
 
 #Set
 app=Flask(__name__)
@@ -28,7 +29,8 @@ bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
 USER_DIR = "users"
-TEMPLATE_USER = os.path.join(USER_DIR, "template_user")
+TEMPLATE_USER = os.path.join('defult', "template_user")
+TEMPLATE_BOOK = os.path.join('defult', "template_book")
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # 自動遞增 ID
@@ -124,7 +126,7 @@ def register():
     
     #setup user folder
     user = User.query.filter_by(username=Username).first()
-    initUser(TEMPLATE_USER,USER_DIR,user.user_id)
+    init(TEMPLATE_USER,USER_DIR,user.user_id)
 
     response = make_response(jsonify({"message": "登入成功"}))
     set_access_cookies(response, token)  # 設定 JWT 到 Cookie
@@ -153,18 +155,6 @@ def logout():
     unset_jwt_cookies(response)  # 刪除 JWT Cookie
     return response
 
-
-@app.route("/api/user/getAvatar", methods=["GET"])
-@jwt_required()
-def get_user():
-    current_user = get_jwt_identity()  # 取得 JWT 內的 username
-    user = User.query.filter_by(username=current_user).first()
-    if not user:
-        return jsonify({"error": "使用者不存在"}), 404
-    user_ID = user.user_id
-    avatar_path = os.path.join(USER_DIR,f'{user_ID}/avatar.png')
-    return send_file(avatar_path, mimetype='image/png')
-
 @app.route("/api/delete_user", methods=["POST"])
 @jwt_required()
 def delete_user():
@@ -177,6 +167,79 @@ def delete_user():
         return jsonify({"message": "使用者已刪除"}), 200
 
     return jsonify({"error": "使用者不存在"}), 404
+
+#login service
+@app.route("/api/user/getAvatar", methods=["GET"])
+@jwt_required()
+def get_user():
+    current_user = get_jwt_identity()  # 取得 JWT 內的 username
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"error": "使用者不存在"}), 404
+    user_ID = user.user_id
+    avatar_path = os.path.join(USER_DIR,f'{user_ID}/avatar.png')
+    return send_file(avatar_path, mimetype='image/png')
+
+@app.route("/api/user/getSetting", methods=["GET"])
+@jwt_required()
+def get_setting():
+    current_user = get_jwt_identity()  # 取得 JWT 內的 username
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"error": "使用者不存在"}), 404
+    user_ID = user.user_id
+
+    setting_path = os.path.join(USER_DIR,f'{user_ID}/settings.json')
+    return send_file(setting_path,mimetype="application/json")
+
+@app.route('/api/user/creatFolder',methods=["POST"])
+@jwt_required()
+def creadFolder():
+    data = request.get_json()
+
+    current_user = get_jwt_identity()  # 取得 JWT 內的 username
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"error": "使用者不存在"}), 404
+    user_ID = user.user_id
+
+    user_book_path = os.path.join(USER_DIR,f'{user_ID}/books')
+    dirName = data.get('folderName')
+    dirName_bytes = dirName.encode("ascii")
+
+    base64_bytes = base64.b64encode(dirName_bytes)
+    base64_string = base64_bytes.decode("ascii")
+
+    init(TEMPLATE_BOOK,user_book_path,base64_string)
+    print(f"資料夾已複製到 {user_book_path}")
+    return "creat successful"
+
+@app.route('/api/user/DeleteFolder',methods=["POST"])
+@jwt_required()
+def DeleteFolder():
+    data = request.get_json()
+
+    current_user = get_jwt_identity()  # 取得 JWT 內的 username
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"error": "使用者不存在"}), 404
+    user_ID = user.user_id
+
+    dirName = data.get('folderName')
+    dirName_bytes = dirName.encode("ascii")
+
+    base64_bytes = base64.b64encode(dirName_bytes)
+    base64_string = base64_bytes.decode("ascii")
+    user_book_path = os.path.join(USER_DIR,f'{user_ID}/books/{base64_string}')
+    
+    if os.path.exists(user_book_path):
+        shutil.rmtree(user_book_path)  # 刪除整個資料夾及其內容
+        print("資料夾已刪除")
+    else:
+        print("資料夾不存在")
+
+    print(f"已刪除資料夾: {user_book_path}")
+    return "creat successful",200
 
 #Function
 def proccess_URL(data):
@@ -205,7 +268,7 @@ def saveProgress(progressLine):
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-def initUser(template,dir,folderName):
+def init(template,dir,folderName):
     userFolder = os.path.join(dir,str(folderName))
     # 如果目標資料夾已存在，先刪除
     if os.path.exists(userFolder):
