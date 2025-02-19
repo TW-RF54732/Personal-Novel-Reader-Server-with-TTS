@@ -53,17 +53,10 @@ def index():
 
     return redirect(url_for("loginPage"))  # 未登入，轉向 /login
 
-@app.route("/home")
+@app.route("/home")#登入導入，否則導入/login
+@jwt_required()
 def home():
-    try:
-        verify_jwt_in_request(optional=True)  # 嘗試檢查 JWT
-        identity = get_jwt_identity()
-        if identity:
-            return render_template('Reading.html')  # 已登入，進入 /home
-    except:
-        pass  # JWT 無效或缺失，視為未登入
-
-    return redirect("/login")  # 這裡回傳 HTML
+    return render_template('home.html')  # 已登入，進入 /home
 
 @app.route("/login")
 def loginPage():
@@ -73,6 +66,13 @@ def loginPage():
 def registerPage():
     return render_template('Register.html')
 
+@app.route('/favicon.ico',methods=['GET'])
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, "static"), "favicon.ico", mimetype="image/vnd.microsoft.icon"
+    )
+
+#需要更改
 @app.route("/proccess",methods=['POST'])
 def call_VITS_API():
     data = request.get_json()
@@ -89,12 +89,6 @@ def call_VITS_API():
         download_name="processed.wav"
     )
 
-@app.route('/favicon.ico',methods=['GET'])
-def favicon():
-    return send_from_directory(
-        os.path.join(app.root_path, "static"), "favicon.ico", mimetype="image/vnd.microsoft.icon"
-    )
-
 @app.route('/get_txt',methods=['GET'])
 def get_txt():
     return send_file("users/exAccount/testBook/3714.txt", as_attachment=True)
@@ -107,7 +101,7 @@ def showProgress():
     if "progress" in data:
         s = f'{data["progress"]}'
         return str(s)
-
+#需要更改
 # API
 @app.route("/api/register", methods=["POST"])
 def register():

@@ -7,3 +7,4 @@ Reader.code-workspace
 .gitattributes
 .gitignore
 instance/
+testArea/
