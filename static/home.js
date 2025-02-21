@@ -1,16 +1,24 @@
 document.getElementById('addFolderBtn').addEventListener('click',()=>{
     const name = document.getElementById('folderName').value.trim();
     if (name) {
-        const bookList = document.getElementById('bookList');
-        const div = document.createElement('div');
-        div.className = "p-4 bg-white shadow rounded flex justify-between";
-        div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button onclick="deleteFolder(this.parentElement)" class='text-red-500'>刪除</button>`;
-        bookList.appendChild(div);
-        document.getElementById('folderName').value = '';
-        creatFolder(name);
+        try {
+            const bookList = document.getElementById('bookList');
+            const div = document.createElement('div');
+            div.className = "p-4 bg-white shadow rounded flex justify-between";
+            div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button onclick="deleteFolder(this.parentElement)" class='text-red-500'>刪除</button>`;
+            bookList.appendChild(div);
+            document.getElementById('folderName').value = '';
+            creatFolder(name);
+        } catch (error) {
+            alert('錯誤');
+        }
     }
 })
-
+document.getElementById("bookList").addEventListener("click", function(event) {
+    if (event.target.classList.contains("delete-btn")) {
+        deleteFolder(event.target.parentElement);  // 傳入父元素
+    }
+});
 //function
 function getAvatar(){
     avatar = document.getElementById('avatar')
@@ -42,13 +50,24 @@ async function getSetting() {
     applySetting(settings);
 }
 async function creatFolder(folderName) {
-    await fetch('/api/user/creatFolder',{
+    const response = await fetch('/api/user/creatFolder',{
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folderName }),
         credentials:"include"
+    });
+    console.log(response);
+}
+
+async function initUser(password) {
+    await fetch('/api/user/initUser',{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+        credentials:"include"
     })
 }
+
 async function deleteFolder(element) {
     
 }

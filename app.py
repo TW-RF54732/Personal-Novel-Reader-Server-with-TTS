@@ -155,6 +155,22 @@ def logout():
     unset_jwt_cookies(response)  # 刪除 JWT Cookie
     return response
 
+@app.route("/api/user/initUser", methods=["POST"])
+@jwt_required()
+def initUser():
+    data = request.get_json()
+    Password = data.get("password")
+    
+    current_user = get_jwt_identity()  # 取得 JWT 內的 username
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"error": "使用者不存在"}), 404
+
+    if bcrypt.check_password_hash(user.password, Password):
+        init(TEMPLATE_USER,USER_DIR,user.user_id)
+        return jsonify({"Success": "使用者以格式化"}),200
+
+    return jsonify({"error": "密碼錯誤"})
 @app.route("/api/delete_user", methods=["POST"])
 @jwt_required()
 def delete_user():
@@ -171,7 +187,7 @@ def delete_user():
 #login service
 @app.route("/api/user/getAvatar", methods=["GET"])
 @jwt_required()
-def get_user():
+def get_userAvatar():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
     if not user:
@@ -205,11 +221,13 @@ def creadFolder():
 
     user_book_path = os.path.join(USER_DIR,f'{user_ID}/books')
     dirName = data.get('folderName')
-    dirName_bytes = dirName.encode("ascii")
+    try:
+        dirName_bytes = dirName.encode("utf-8")
 
-    base64_bytes = base64.b64encode(dirName_bytes)
-    base64_string = base64_bytes.decode("ascii")
-
+        base64_bytes = base64.b64encode(dirName_bytes)
+        base64_string = base64_bytes.decode("utf-8")
+    except:
+        return "Name not allowed"
     init(TEMPLATE_BOOK,user_book_path,base64_string)
     print(f"資料夾已複製到 {user_book_path}")
     return "creat successful"
