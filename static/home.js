@@ -1,17 +1,7 @@
 document.getElementById('addFolderBtn').addEventListener('click',()=>{
     const name = document.getElementById('folderName').value.trim();
     if (name) {
-        try {
-            const bookList = document.getElementById('bookList');
-            const div = document.createElement('div');
-            div.className = "p-4 bg-white shadow rounded flex justify-between";
-            div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button onclick="deleteFolder(this.parentElement)" class='text-red-500'>刪除</button>`;
-            bookList.appendChild(div);
-            document.getElementById('folderName').value = '';
-            creatFolder(name);
-        } catch (error) {
-            alert('錯誤');
-        }
+        addFolder(name,true);
     }
 })
 document.getElementById("bookList").addEventListener("click", function(event) {
@@ -19,6 +9,7 @@ document.getElementById("bookList").addEventListener("click", function(event) {
         deleteFolder(event.target.parentElement);  // 傳入父元素
     }
 });
+
 //function
 function getAvatar(){
     avatar = document.getElementById('avatar')
@@ -47,7 +38,7 @@ async function getSetting() {
     }
     const settings = await response.json();
     localStorage.setItem("userSettings", JSON.stringify(settings));  // 存入 localStorage
-    applySetting(settings);
+    //applySetting(settings);
 }
 async function creatFolder(folderName) {
     const response = await fetch('/api/user/creatFolder',{
@@ -56,7 +47,38 @@ async function creatFolder(folderName) {
         body: JSON.stringify({ folderName }),
         credentials:"include"
     });
-    console.log(response);
+    if(!response.ok){
+        alert('創建失敗');
+    }
+}
+
+async function deleteFolder(element) {
+    folderName = element.id;
+    fetch('/api/user/deleteFolder',{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderName }),
+        credentials:"include"
+    });
+    element.remove();
+}
+function addFolder(name,creat){
+    if (name) {
+        try {
+            const bookList = document.getElementById('bookList');
+            const div = document.createElement('div');
+            div.className = "p-4 bg-white shadow rounded flex justify-between";
+            div.id = name;
+            div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button onclick="deleteFolder(this.parentElement)" class='text-red-500'>刪除</button>`;
+            bookList.appendChild(div);
+            document.getElementById('folderName').value = '';
+            if(creat){
+                creatFolder(name);
+            }
+        } catch (error) {
+            alert('錯誤');
+        }
+    }
 }
 
 async function initUser(password) {
@@ -68,9 +90,6 @@ async function initUser(password) {
     })
 }
 
-async function deleteFolder(element) {
-    
-}
 
 function applySetting(data){
     console.log("username:",data.username);
@@ -78,6 +97,38 @@ function applySetting(data){
     console.log("theme:",data.settings.theme);
 }
 
+async function getFolders() {
+    const response = await fetch("/api/user/getFolders", {
+        method: "GET",
+        credentials: "include" // 讓請求帶上 JWT Cookie
+    });
+
+    if (!response.ok) {
+        console.error("無法獲取資料夾列表");
+        return;
+    }
+
+    const data = await response.json();
+    return data.folders;
+
+}
+async function logout() {
+    await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include"  // 讓 Cookie 被正確刪除
+    });
+}
+
+
 //setup
-getAvatar();
-getSetting()
+async function loadFolder(){
+    const folders = await getFolders()
+    for(let i = 0;i<folders.length;i++){
+        addFolder(folders[i],false);
+    }
+}
+window.onload = function(){
+    loadFolder();
+    getAvatar();
+    getSetting()
+}

@@ -56,9 +56,16 @@ def index():
     return redirect(url_for("loginPage"))  # 未登入，轉向 /login
 
 @app.route("/home")#登入導入，否則導入/login
-@jwt_required()
 def home():
-    return render_template('home.html')  # 已登入，進入 /home
+    try:
+        verify_jwt_in_request(optional=True)  # 嘗試檢查 JWT
+        identity = get_jwt_identity()
+        if identity:
+            return render_template('home.html')  # 已登入，進入 /home
+    except:
+        pass  # JWT 無效或缺失，視為未登入
+
+    return redirect(url_for("loginPage"))  # 未登入，轉向 /login
 
 @app.route("/login")
 def loginPage():
@@ -171,6 +178,7 @@ def initUser():
         return jsonify({"Success": "使用者以格式化"}),200
 
     return jsonify({"error": "密碼錯誤"})
+
 @app.route("/api/delete_user", methods=["POST"])
 @jwt_required()
 def delete_user():
@@ -191,7 +199,7 @@ def get_userAvatar():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
     if not user:
-        return jsonify({"error": "使用者不存在"}), 404
+        return logout()
     user_ID = user.user_id
     avatar_path = os.path.join(USER_DIR,f'{user_ID}/avatar.png')
     return send_file(avatar_path, mimetype='image/png')
@@ -208,6 +216,7 @@ def get_setting():
     setting_path = os.path.join(USER_DIR,f'{user_ID}/settings.json')
     return send_file(setting_path,mimetype="application/json")
 
+#Folder
 @app.route('/api/user/creatFolder',methods=["POST"])
 @jwt_required()
 def creadFolder():
@@ -223,16 +232,15 @@ def creadFolder():
     dirName = data.get('folderName')
     try:
         dirName_bytes = dirName.encode("utf-8")
-
         base64_bytes = base64.b64encode(dirName_bytes)
-        base64_string = base64_bytes.decode("utf-8")
+        b64DirName = base64_bytes.decode("utf-8")
     except:
         return "Name not allowed"
-    init(TEMPLATE_BOOK,user_book_path,base64_string)
+    init(TEMPLATE_BOOK,user_book_path,b64DirName)
     print(f"資料夾已複製到 {user_book_path}")
     return "creat successful"
 
-@app.route('/api/user/DeleteFolder',methods=["POST"])
+@app.route('/api/user/deleteFolder',methods=["POST"])
 @jwt_required()
 def DeleteFolder():
     data = request.get_json()
@@ -244,10 +252,10 @@ def DeleteFolder():
     user_ID = user.user_id
 
     dirName = data.get('folderName')
-    dirName_bytes = dirName.encode("ascii")
+    dirName_bytes = dirName.encode("utf-8")
 
     base64_bytes = base64.b64encode(dirName_bytes)
-    base64_string = base64_bytes.decode("ascii")
+    base64_string = base64_bytes.decode("utf-8")
     user_book_path = os.path.join(USER_DIR,f'{user_ID}/books/{base64_string}')
     
     if os.path.exists(user_book_path):
@@ -257,8 +265,31 @@ def DeleteFolder():
         print("資料夾不存在")
 
     print(f"已刪除資料夾: {user_book_path}")
-    return "creat successful",200
+    return jsonify({"Success": f"已刪除: {dirName}"}), 200
 
+@app.route('/api/user/getFolders',methods=["GET"])
+@jwt_required()
+def getFolders():
+    current_user = get_jwt_identity()  # 取得 JWT 內的 username
+    user = User.query.filter_by(username=current_user).first()
+
+    if not user:
+        return jsonify({"error": "使用者不存在"}), 404
+
+    userDir = os.path.join(USER_DIR,user.user_id)
+    userBookDir = os.path.join(userDir,"books")
+
+    if not os.path.exists(userBookDir):
+        return jsonify({"error": "書籍資料夾不存在"}), 404
+    
+    subfolders_b64 = [entry.name for entry in os.scandir(userBookDir) if entry.is_dir()]
+    subfolders = []
+    for encode in subfolders_b64:
+        decoded = base64.b64decode(encode).decode('UTF-8')
+        subfolders.append(decoded)
+
+    return jsonify({"folders": subfolders})  # 回傳 JSON
+#/Folder
 #Function
 def proccess_URL(data):
     referWavPath = data.get("refer_wav_path")  # 音頻路徑
