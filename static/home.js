@@ -8,9 +8,13 @@ document.getElementById("bookList").addEventListener("click", function(event) {
     if (event.target.classList.contains("delete-btn")) {
         deleteFolder(event.target.parentElement);  // 傳入父元素
     }
+    else if(event.target.classList.contains("folder")){
+        alert("comming soon~");
+        console.log("Nah, the devloper is noob,duno how to do it.");
+    }
 });
 
-//function
+//setup function
 function getAvatar(){
     avatar = document.getElementById('avatar')
     fetch("/api/user/getAvatar", {
@@ -40,6 +44,16 @@ async function getSetting() {
     localStorage.setItem("userSettings", JSON.stringify(settings));  // 存入 localStorage
     //applySetting(settings);
 }
+
+async function loadFolder(){
+    const folders = await getFolders()
+    for(let i = 0;i<folders.length;i++){
+        addFolder(folders[i],false);
+    }
+}
+//setup function--
+
+//folder
 async function creatFolder(folderName) {
     const response = await fetch('/api/user/creatFolder',{
         method: "POST",
@@ -62,14 +76,15 @@ async function deleteFolder(element) {
     });
     element.remove();
 }
+
 function addFolder(name,creat){
     if (name) {
         try {
             const bookList = document.getElementById('bookList');
             const div = document.createElement('div');
-            div.className = "p-4 bg-white shadow rounded flex justify-between";
+            div.className = "p-4 bg-white shadow rounded flex justify-between folder clickable";
             div.id = name;
-            div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button onclick="deleteFolder(this.parentElement)" class='text-red-500'>刪除</button>`;
+            div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button class='text-red-500 delete-btn'>刪除</button>`;
             bookList.appendChild(div);
             document.getElementById('folderName').value = '';
             if(creat){
@@ -79,22 +94,6 @@ function addFolder(name,creat){
             alert('錯誤');
         }
     }
-}
-
-async function initUser(password) {
-    await fetch('/api/user/initUser',{
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-        credentials:"include"
-    })
-}
-
-
-function applySetting(data){
-    console.log("username:",data.username);
-    console.log("settings:",data.settings.autoRead);
-    console.log("theme:",data.settings.theme);
 }
 
 async function getFolders() {
@@ -112,6 +111,30 @@ async function getFolders() {
     return data.folders;
 
 }
+//folder--
+
+//in folder
+
+//in folder--
+
+
+
+async function initUser(password) {
+    await fetch('/api/user/initUser',{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+        credentials:"include"
+    })
+}
+
+function applySetting(data){//unfinish
+    console.log("username:",data.username);
+    console.log("settings:",data.settings.autoRead);
+    console.log("theme:",data.settings.theme);
+}
+
+
 async function logout() {
     await fetch("/api/logout", {
         method: "POST",
@@ -121,12 +144,6 @@ async function logout() {
 
 
 //setup
-async function loadFolder(){
-    const folders = await getFolders()
-    for(let i = 0;i<folders.length;i++){
-        addFolder(folders[i],false);
-    }
-}
 window.onload = function(){
     loadFolder();
     getAvatar();
