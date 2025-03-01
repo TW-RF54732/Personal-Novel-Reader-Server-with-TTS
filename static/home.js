@@ -1,19 +1,12 @@
-document.getElementById('addFolderBtn').addEventListener('click',()=>{
-    const name = document.getElementById('folderName').value.trim();
-    if (name) {
-        addFolder(name,true);
+document.getElementById('addBookForm').onsubmit = (e) => {
+    e.preventDefault();
+    const bookName = document.getElementById('bookNameInput').value.trim();
+    creatFolder(bookName);
+    if (bookName) {
+        renderBooks(bookName);
+        document.getElementById('bookNameInput').value = '';
     }
-})
-document.getElementById("bookList").addEventListener("click", function(event) {
-    if (event.target.classList.contains("delete-btn")) {
-        deleteFolder(event.target.parentElement);  // 傳入父元素
-    }
-    else if(event.target.classList.contains("folder")){
-        alert("comming soon~");
-        console.log("Nah, the devloper is noob,duno how to do it.");
-    }
-});
-
+};
 //setup function
 function getAvatar(){
     avatar = document.getElementById('avatar')
@@ -32,7 +25,7 @@ function getAvatar(){
 }
 
 async function getSetting() {
-    const response = await fetch("/api/user/getSetting",{
+     const response = await fetch("/api/user/getSetting",{
         method: "GET",
         credentials:"include"
     });
@@ -45,12 +38,6 @@ async function getSetting() {
     //applySetting(settings);
 }
 
-async function loadFolder(){
-    const folders = await getFolders()
-    for(let i = 0;i<folders.length;i++){
-        addFolder(folders[i],false);
-    }
-}
 //setup function--
 
 //folder
@@ -76,8 +63,29 @@ async function deleteFolder(element) {
     });
     element.remove();
 }
+function renderBooks(book) {//books: string array of book name
+    if(!book){return "error";}
+    const bookList = document.getElementById('bookList');
 
-function addFolder(name,creat){
+    const col = document.createElement('div');
+    col.className = 'col-md-3';
+
+    const card = document.createElement('div');
+    card.className = 'card book-card';
+    card.id = book;
+    card.innerHTML = `
+        <div class="card-body">
+            <h5 class="card-title">${book}</h5>
+        </div>
+    `;
+    // 點擊卡片的事件
+    card.onclick = () => alert(`打開「${book}」`);
+
+    col.appendChild(card);
+    bookList.appendChild(col);
+
+}
+function addFolder(name){
     if (name) {
         try {
             const bookList = document.getElementById('bookList');
@@ -87,16 +95,13 @@ function addFolder(name,creat){
             div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button class='text-red-500 delete-btn'>刪除</button>`;
             bookList.appendChild(div);
             document.getElementById('folderName').value = '';
-            if(creat){
-                creatFolder(name);
-            }
         } catch (error) {
             alert('錯誤');
         }
     }
 }
 
-async function getFolders() {
+async function getFolders() {//return folder name array(string)
     const response = await fetch("/api/user/getFolders", {
         method: "GET",
         credentials: "include" // 讓請求帶上 JWT Cookie
@@ -141,11 +146,19 @@ async function logout() {
         credentials: "include"  // 讓 Cookie 被正確刪除
     });
 }
+async function loadFolders() {
+    let f=[];
+    f = await getFolders();
+    if(!f){return "error";}
 
+    f.forEach(element => {
+        renderBooks(element);
+    });
+}
 
 //setup
 window.onload = function(){
-    loadFolder();
+    loadFolders();
     getAvatar();
     getSetting()
 }
