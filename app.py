@@ -31,6 +31,7 @@ jwt = JWTManager(app)
 USER_DIR = "users"
 TEMPLATE_USER = os.path.join('defult', "template_user")
 TEMPLATE_BOOK = os.path.join('defult', "template_book")
+# dsa
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # 自動遞增 ID
