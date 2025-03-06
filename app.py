@@ -291,6 +291,13 @@ def getFolders():
 
     return jsonify({"folders": subfolders})  # 回傳 JSON
 #/Folder
+#book
+@app.route('/api/user/folder/uploadFile',methods=["POST"])
+@jwt_required()
+def uploadFile():
+    return 0
+
+#/book
 #Function
 def proccess_URL(data):
     referWavPath = data.get("refer_wav_path")  # 音頻路徑

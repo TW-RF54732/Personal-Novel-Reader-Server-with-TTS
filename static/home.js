@@ -76,7 +76,7 @@ function renderBooks(book) {//books: string array of book name
     card.innerHTML = `
         <div class="card-body">
             <h5 class="card-title">${book}</h5>
-            <img src="https://www.westminster.ac.uk/sites/default/public-files/styles/panel_image_third_320px/public/general-images/epq-meme.jpg?itok=PQuo_m3s%20420w,%20/sites/default/public-files/styles/panel_image_1_4/public/general-images/epq-meme.jpg?itok=8sm6UBVy%20560w,%20/sites/default/public-files/styles/panel_image_1_2_768px_/public/general-images/epq-meme.jpg?itok=5b7ZyKpI%20800w">
+            <img src="http://img.wenku8.com/image/3/3714/3714s.jpg">
         </div>
     `;
     // 點擊卡片的事件
