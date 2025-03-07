@@ -1,12 +1,10 @@
 document.getElementById('addBookForm').onsubmit = (e) => {
     e.preventDefault();
     const bookName = document.getElementById('bookNameInput').value.trim();
+    document.getElementById('bookNameInput').value = '';
     creatFolder(bookName);
-    if (bookName) {
-        renderBooks(bookName);
-        document.getElementById('bookNameInput').value = '';
-    }
 };
+
 //setup function
 function getAvatar(){
     avatar = document.getElementById('avatar')
@@ -42,15 +40,34 @@ async function getSetting() {
 
 //folder
 async function creatFolder(folderName) {
-    const response = await fetch('/api/user/creatFolder',{
+    fetch('/api/user/creatFolder',{
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folderName }),
         credentials:"include"
+    })
+    .then(async response => {
+        console.log("HTTP 狀態碼:", response.status);  // 取得狀態碼 (如: 200, 409, 400)
+    
+        if (response.ok) {
+            const data = await response.json();
+            console.log("成功回應:", data);
+            renderBooks(folderName);
+        } else {
+            const errorData = await response.json();
+            console.error("錯誤回應:", errorData);
+            if (response.status === 409) {
+                alert("資料夾已存在");
+            } else {
+                alert("發生錯誤: " + errorData.error);
+            }
+        }
+    })
+    .catch(error => {
+        console.error("網路或伺服器錯誤", error);
+        return 400;
     });
-    if(!response.ok){
-        alert('創建失敗');
-    }
+
 }
 
 // async function deleteFolder(element) {

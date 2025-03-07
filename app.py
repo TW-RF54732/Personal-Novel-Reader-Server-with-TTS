@@ -237,9 +237,13 @@ def creadFolder():
         b64DirName = base64_bytes.decode("utf-8")
     except:
         return "Name not allowed"
+    checkPath = os.path.join(user_book_path,b64DirName)
+    if os.path.isdir(checkPath):
+        print("資料夾已存在")
+        return jsonify({"error": "資料夾已存在"}), 409
     init(TEMPLATE_BOOK,user_book_path,b64DirName)
     print(f"資料夾已複製到 {user_book_path}")
-    return "creat successful"
+    return jsonify({"Success": f"已創建: {dirName}"}), 200
 
 @app.route('/api/user/deleteFolder',methods=["POST"])
 @jwt_required()
@@ -253,10 +257,8 @@ def DeleteFolder():
     user_ID = user.user_id
 
     dirName = data.get('folderName')
-    dirName_bytes = dirName.encode("utf-8")
 
-    base64_bytes = base64.b64encode(dirName_bytes)
-    base64_string = base64_bytes.decode("utf-8")
+    base64_string = b64Encode(dirName)
     user_book_path = os.path.join(USER_DIR,f'{user_ID}/books/{base64_string}')
     
     if os.path.exists(user_book_path):
@@ -286,7 +288,7 @@ def getFolders():
     subfolders_b64 = [entry.name for entry in os.scandir(userBookDir) if entry.is_dir()]
     subfolders = []
     for encode in subfolders_b64:
-        decoded = base64.b64decode(encode).decode('UTF-8')
+        decoded = b64Decode(encode)
         subfolders.append(decoded)
 
     return jsonify({"folders": subfolders})  # 回傳 JSON
@@ -334,7 +336,19 @@ def init(template,dir,folderName):
     shutil.copytree(template, userFolder)  # 複製資料夾
     print(f"資料夾已複製到 {userFolder}")
 
-    
+def b64Encode(cypher):
+    string_bytes = cypher.encode("ascii")
+
+    base64_bytes = base64.b64encode(string_bytes)
+    base64_string = base64_bytes.decode("UTF-8")
+    return base64_string
+
+def b64Decode(code):
+    base64_bytes = code.encode("ascii")
+
+    string_bytes = base64.b64decode(base64_bytes)
+    de_string = string_bytes.decode("UTF-8")
+    return de_string
 
 if __name__ == "__main__":
     app.run(debug=True,host="127.0.0.1",port=54733)
