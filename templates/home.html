@@ -13,6 +13,13 @@
         .book-card {
             cursor: pointer;
             transition: transform 0.2s;
+            user-select: none; /* 禁止選取文字 */
+            -webkit-user-select: none; /* 針對 Chrome/Safari */
+            -moz-user-select: none; /* 針對 Firefox */
+            -ms-user-select: none; /* 針對 IE/Edge */
+        }
+        .book-card img {
+            pointer-events: none; /* 讓圖片不會影響拖曳 */
         }
         .book-card:hover {
             transform: scale(1.05);
@@ -73,7 +80,7 @@
         -->
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script src="{{ url_for('static', filename='home.js') }}"></script>
-
 </body>
 </html>
