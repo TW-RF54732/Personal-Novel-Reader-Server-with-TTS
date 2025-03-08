@@ -93,7 +93,7 @@ function renderBooks(book) {//books: string array of book name
     card.innerHTML = `
         <div class="card-body">
             <h5 class="card-title">${book}</h5>
-            <img src="http://img.wenku8.com/image/3/3714/3714s.jpg">
+            <img src="http://img.wenku8.com/image/3/3714/3714s.jpg" draggable="false">
         </div>
     `;
     // 點擊卡片的事件
@@ -101,7 +101,7 @@ function renderBooks(book) {//books: string array of book name
 
     col.appendChild(card);
     bookList.appendChild(col);
-
+    initSortable()
 }
 function addFolder(name){
     if (name) {
@@ -140,6 +140,17 @@ async function getFolders() {//return folder name array(string)
 
 //in folder--
 
+let sortable;
+function initSortable() {
+    if (sortable) {
+        sortable.destroy(); // 先銷毀舊的 Sortable 實例
+    }
+    sortable = new Sortable(document.getElementById('bookList'), {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        handle: ".book-card", // 讓整個 .book-card 可以拖曳
+    });
+}
 
 
 async function initUser(password) {
@@ -176,6 +187,7 @@ async function loadFolders() {
 
 //setup
 window.onload = function(){
+    initSortable();
     loadFolders();
     getAvatar();
     getSetting()
