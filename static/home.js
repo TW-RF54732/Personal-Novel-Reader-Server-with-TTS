@@ -130,9 +130,10 @@ async function getFolders() {//return folder name array(string)
 }
 
 function updateOrder(){
+    const bookList = document.getElementById('bookList');
     let newOrder = [];
     
-    document.querySelectorAll('.bookFolder').forEach((element) => {
+    bookList.querySelectorAll('.bookFolder').forEach((element) => {
         let bookName = element.dataset.folderName;
         newOrder.push(bookName);
     });
