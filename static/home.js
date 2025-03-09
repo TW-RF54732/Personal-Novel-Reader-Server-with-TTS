@@ -1,3 +1,5 @@
+let bookArray = [];
+
 document.getElementById('addBookForm').onsubmit = (e) => {
     e.preventDefault();
     const bookName = document.getElementById('bookNameInput').value.trim();
@@ -52,7 +54,7 @@ async function creatFolder(folderName) {
         if (response.ok) {
             const data = await response.json();
             console.log("成功回應:", data);
-            renderBooks(folderName);
+            addRenderFolder(folderName);
         } else {
             const errorData = await response.json();
             console.error("錯誤回應:", errorData);
@@ -80,16 +82,16 @@ async function creatFolder(folderName) {
 //     });
 //     element.remove();
 // }
-function renderBooks(book) {//books: string array of book name
+function addRenderFolder(book) {//books: string array of book name
     if(!book){return "error";}
     const bookList = document.getElementById('bookList');
 
     const col = document.createElement('div');
-    col.className = 'col-md-3';
+    col.className = 'col-md-3 bookFolder';
+    col.dataset.folderName = book;
 
     const card = document.createElement('div');
     card.className = 'card book-card';
-    card.id = book;
     card.innerHTML = `
         <div class="card-body">
             <h5 class="card-title">${book}</h5>
@@ -103,19 +105,10 @@ function renderBooks(book) {//books: string array of book name
     bookList.appendChild(col);
     initSortable()
 }
-function addFolder(name){
-    if (name) {
-        try {
-            const bookList = document.getElementById('bookList');
-            const div = document.createElement('div');
-            div.className = "p-4 bg-white shadow rounded flex justify-between folder clickable";
-            div.id = name;
-            div.innerHTML = `<span class='font-medium'>📂 ${name}</span> <button class='text-red-500 delete-btn'>刪除</button>`;
-            bookList.appendChild(div);
-            document.getElementById('folderName').value = '';
-        } catch (error) {
-            alert('錯誤');
-        }
+function reflashRenderFolders(){
+    document.getElementById("bookList").innerHTML = '';
+    for(let i = 0;i<bookArray.length;i++){
+        addRenderFolder(bookArray[i]);
     }
 }
 
@@ -131,8 +124,20 @@ async function getFolders() {//return folder name array(string)
     }
 
     const data = await response.json();
+    bookArray = data.folders;
     return data.folders;
 
+}
+
+function updateOrder(){
+    let newOrder = [];
+    
+    document.querySelectorAll('.bookFolder').forEach((element) => {
+        let bookName = element.dataset.folderName;
+        newOrder.push(bookName);
+    });
+    bookArray = newOrder;
+    console.log(bookArray);
 }
 //folder--
 
@@ -149,6 +154,9 @@ function initSortable() {
         animation: 150,
         ghostClass: 'sortable-ghost',
         handle: ".book-card", // 讓整個 .book-card 可以拖曳
+        onEnd: function (evt) {
+            updateOrder();
+        }
     });
 }
 
@@ -181,7 +189,7 @@ async function loadFolders() {
     if(!f){return "error";}
 
     f.forEach(element => {
-        renderBooks(element);
+        addRenderFolder(element);
     });
 }
 
