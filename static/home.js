@@ -1,5 +1,4 @@
 let bookArray = [];
-
 document.getElementById('addBookForm').onsubmit = (e) => {
     e.preventDefault();
     const bookName = document.getElementById('bookNameInput').value.trim();
@@ -24,8 +23,8 @@ function getAvatar(){
     });
 }
 
-async function getSetting() {
-     const response = await fetch("/api/user/getSetting",{
+async function getData() {
+     const response = await fetch("/api/user/getData",{
         method: "GET",
         credentials:"include"
     });
@@ -33,11 +32,23 @@ async function getSetting() {
         console.error("無法獲取 data.json");
         return;
     }
-    const settings = await response.json();
-    localStorage.setItem("userSettings", JSON.stringify(settings));  // 存入 localStorage
+    const data = await response.json();
+    localStorage.setItem("userData", JSON.stringify(data));  // 存入 localStorage
     //applySetting(settings);
-}
 
+    bookArray = await data.folders;
+    reflashRenderFolders();
+}
+async function saveData() {
+    fetch('/api/user/saveData',{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: localStorage.getItem("userData"),
+        credentials:"include"
+    })
+    .then(response => console.log(response))
+    .catch(error => console.log(error));
+}
 //setup function--
 
 //folder
@@ -69,19 +80,26 @@ async function creatFolder(folderName) {
         console.error("網路或伺服器錯誤", error);
         return 400;
     });
+    let userData = JSON.parse(localStorage.getItem("userData"))
+    if (!userData.folders.includes(folderName)) {
+        userData.folders.push(folderName);
+        localStorage.setItem("userData", JSON.stringify(userData));
+        console.log(`✅ 已新增 "${folderName}" 到 folders`);
+    } else {
+        console.log(`⚠️ "${folderName}" 已存在於 folders`);
+    }
 
+    saveData();
 }
 
-// async function deleteFolder(element) {
-//     folderName = element.id;
-//     fetch('/api/user/deleteFolder',{
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ folderName }),
-//         credentials:"include"
-//     });
-//     element.remove();
-// }
+async function deleteFolder(folderName) {
+    fetch('/api/user/deleteFolder',{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderName }),
+        credentials:"include"
+    });
+}
 function addRenderFolder(book) {//books: string array of book name
     if(!book){return "error";}
     const bookList = document.getElementById('bookList');
@@ -107,9 +125,9 @@ function addRenderFolder(book) {//books: string array of book name
 }
 function reflashRenderFolders(){
     document.getElementById("bookList").innerHTML = '';
-    for(let i = 0;i<bookArray.length;i++){
-        addRenderFolder(bookArray[i]);
-    }
+    bookArray.forEach(element => {
+        addRenderFolder(element);
+    });
 }
 
 async function getFolders() {//return folder name array(string)
@@ -129,7 +147,7 @@ async function getFolders() {//return folder name array(string)
 
 }
 
-function updateOrder(){
+async function updateOrder(){
     const bookList = document.getElementById('bookList');
     let newOrder = [];
     
@@ -138,7 +156,10 @@ function updateOrder(){
         newOrder.push(bookName);
     });
     bookArray = newOrder;
-    console.log(bookArray);
+    let userData = JSON.parse(localStorage.getItem("userData"));
+    userData.folders = newOrder;
+    localStorage.setItem("userData", JSON.stringify(userData));
+    saveData();
 }
 //folder--
 
@@ -184,20 +205,10 @@ async function logout() {
         credentials: "include"  // 讓 Cookie 被正確刪除
     });
 }
-async function loadFolders() {
-    let f=[];
-    f = await getFolders();
-    if(!f){return "error";}
-
-    f.forEach(element => {
-        addRenderFolder(element);
-    });
-}
 
 //setup
 window.onload = function(){
-    initSortable();
-    loadFolders();
+    getData();
     getAvatar();
-    getSetting()
+    initSortable();
 }

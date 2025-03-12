@@ -3,5 +3,6 @@
     "settings":{
         "autoRead":true,
         "theme":"white"
-    }
+    },
+    "folders":[]
 }

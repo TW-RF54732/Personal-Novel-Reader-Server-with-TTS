@@ -205,17 +205,38 @@ def get_userAvatar():
     avatar_path = os.path.join(USER_DIR,f'{user_ID}/avatar.png')
     return send_file(avatar_path, mimetype='image/png')
 
-@app.route("/api/user/getSetting", methods=["GET"])
+@app.route("/api/user/getData", methods=["GET"])
 @jwt_required()
-def get_setting():
+def get_data():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
     if not user:
         return jsonify({"error": "使用者不存在"}), 404
     user_ID = user.user_id
 
-    setting_path = os.path.join(USER_DIR,f'{user_ID}/settings.json')
+    setting_path = os.path.join(USER_DIR,f'{user_ID}/userData.json')
     return send_file(setting_path,mimetype="application/json")
+
+@app.route("/api/user/saveData",methods=['POST'])
+@jwt_required()
+def saveData():
+    current_user = get_jwt_identity()
+    user = getUser(current_user)
+    if not user:
+        return jsonify({"error": "使用者不存在"}), 404
+    user_id = user.user_id
+    user_folder = os.path.join(USER_DIR, user_id)
+
+    try:
+        user_data = request.get_json()
+    except Exception as e:
+        return jsonify({"error": "JSON 格式錯誤"}), 400
+    
+    user_data_path = os.path.join(user_folder, "userData.json")
+    with open(user_data_path, "w", encoding="utf-8") as f:
+        json.dump(user_data, f, indent=4, ensure_ascii=False)
+
+    return jsonify({"message": "userData.json 已更新", "path": user_data_path}), 200
 
 #Folder
 @app.route('/api/user/creatFolder',methods=["POST"])
@@ -241,8 +262,11 @@ def creadFolder():
     if os.path.isdir(checkPath):
         print("資料夾已存在")
         return jsonify({"error": "資料夾已存在"}), 409
+    
     init(TEMPLATE_BOOK,user_book_path,b64DirName)
+    
     print(f"資料夾已複製到 {user_book_path}")
+
     return jsonify({"Success": f"已創建: {dirName}"}), 200
 
 @app.route('/api/user/deleteFolder',methods=["POST"])
@@ -251,12 +275,15 @@ def DeleteFolder():
     data = request.get_json()
 
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
-    user = User.query.filter_by(username=current_user).first()
+    user = getUser(current_user)
     if not user:
         return jsonify({"error": "使用者不存在"}), 404
     user_ID = user.user_id
 
     dirName = data.get('folderName')
+    if(dirName ==""):
+        return jsonify({"error": "資料夾名稱格式錯誤"}), 400
+    print(dirName)
 
     base64_string = b64Encode(dirName)
     user_book_path = os.path.join(USER_DIR,f'{user_ID}/books/{base64_string}')
@@ -266,6 +293,7 @@ def DeleteFolder():
         print("資料夾已刪除")
     else:
         print("資料夾不存在")
+        return jsonify({"error": "資料夾不存在不存在"}), 404
 
     print(f"已刪除資料夾: {user_book_path}")
     return jsonify({"Success": f"已刪除: {dirName}"}), 200
@@ -312,8 +340,7 @@ def proccess_URL(data):
     print(saveProgress(progressLine))
     return url
 
-def saveProgress(progressLine):
-    json_path = os.path.join("users", "exAccount", "testBook", "progress.json")
+def saveProgress(progressLine,json_path):
     if not os.path.exists(json_path):
         return {"error": "進度檔不存在"}
     
@@ -337,18 +364,21 @@ def init(template,dir,folderName):
     print(f"資料夾已複製到 {userFolder}")
 
 def b64Encode(cypher):
-    string_bytes = cypher.encode("ascii")
+    string_bytes = cypher.encode("UTF-8")
 
     base64_bytes = base64.b64encode(string_bytes)
     base64_string = base64_bytes.decode("UTF-8")
     return base64_string
 
 def b64Decode(code):
-    base64_bytes = code.encode("ascii")
+    base64_bytes = code.encode("UTF-8")
 
     string_bytes = base64.b64decode(base64_bytes)
     de_string = string_bytes.decode("UTF-8")
     return de_string
+
+def getUser(userName):
+    return User.query.filter_by(username=userName).first()
 
 if __name__ == "__main__":
     app.run(debug=True,host="127.0.0.1",port=54733)
