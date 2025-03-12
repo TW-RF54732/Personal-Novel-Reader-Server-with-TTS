@@ -171,14 +171,11 @@ def initUser():
     
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
-    if not user:
-        return jsonify({"error": "使用者不存在"}), 404
-
-    if bcrypt.check_password_hash(user.password, Password):
+    if not user or not bcrypt.check_password_hash(user.password, Password):
+        return jsonify({"error": "帳號或密碼錯誤"}), 401
+    else:
         init(TEMPLATE_USER,USER_DIR,user.user_id)
         return jsonify({"Success": "使用者以格式化"}),200
-
-    return jsonify({"error": "密碼錯誤"})
 
 @app.route("/api/delete_user", methods=["POST"])
 @jwt_required()
