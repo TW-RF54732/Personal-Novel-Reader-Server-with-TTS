@@ -12,7 +12,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager,unset_jwt_cookies, set_access_cookies,create_access_token, jwt_required, get_jwt_identity,verify_jwt_in_request
 import shutil
 import base64
-
+from datetime import timedelta
 #Set
 app=Flask(__name__)
 
@@ -22,6 +22,7 @@ app.config["JWT_COOKIE_SECURE"] = False  # True 表示只允許 HTTPS（開發�
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # 防止 CSRF（可選，開發時關閉）
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"  # SQLite
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 jwt = JWTManager(app)
 
 db = SQLAlchemy(app)
@@ -187,8 +188,10 @@ def delete_user():
         db.session.delete(user)
         db.session.commit()
         return jsonify({"message": "使用者已刪除"}), 200
-
-    return jsonify({"error": "使用者不存在"}), 404
+    
+    logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+    unset_jwt_cookies(logoutResponse)
+    return logoutResponse, 404
 
 #login service
 @app.route("/api/user/getAvatar", methods=["GET"])
@@ -208,7 +211,9 @@ def get_data():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
     if not user:
-        return jsonify({"error": "使用者不存在"}), 404
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
     user_ID = user.user_id
 
     setting_path = os.path.join(USER_DIR,f'{user_ID}/userData.json')
@@ -220,7 +225,9 @@ def saveData():
     current_user = get_jwt_identity()
     user = getUser(current_user)
     if not user:
-        return jsonify({"error": "使用者不存在"}), 404
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
     user_id = user.user_id
     user_folder = os.path.join(USER_DIR, user_id)
 
@@ -244,7 +251,9 @@ def creadFolder():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
     if not user:
-        return jsonify({"error": "使用者不存在"}), 404
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
     user_ID = user.user_id
 
     user_book_path = os.path.join(USER_DIR,f'{user_ID}/books')
@@ -274,7 +283,9 @@ def DeleteFolder():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = getUser(current_user)
     if not user:
-        return jsonify({"error": "使用者不存在"}), 404
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
     user_ID = user.user_id
 
     dirName = data.get('folderName')
@@ -302,7 +313,9 @@ def getFolders():
     user = User.query.filter_by(username=current_user).first()
 
     if not user:
-        return jsonify({"error": "使用者不存在"}), 404
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
 
     userDir = os.path.join(USER_DIR,user.user_id)
     userBookDir = os.path.join(userDir,"books")
