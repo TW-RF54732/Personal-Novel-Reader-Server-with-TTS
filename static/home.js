@@ -123,8 +123,8 @@ function addRenderFolder(book) {//books: string array of book name
 }
 function reflashRenderFolders(){
     document.getElementById("bookList").innerHTML = '';
-    let bookArray = localStorage.getItem("userData").folders;
-    bookArray.forEach(element => {
+    let userData = JSON.parse(localStorage.getItem("userData"));
+    userData.folders.forEach(element => {
         addRenderFolder(element);
     });
 }
@@ -141,7 +141,7 @@ async function getFolders() {//return folder name array(string)
     }
 
     const data = await response.json();
-    let userData = localStorage.getItem("userData");
+    let userData = JSON.parse(localStorage.getItem("userData"));
     userData.folders = data.folders;
     localStorage.setItem("userData",stringify(userData));
     return data.folders;
