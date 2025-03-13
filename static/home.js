@@ -1,4 +1,3 @@
-let bookArray = [];
 document.getElementById('addBookForm').onsubmit = (e) => {
     e.preventDefault();
     const bookName = document.getElementById('bookNameInput').value.trim();
@@ -36,7 +35,6 @@ async function getData() {
     localStorage.setItem("userData", JSON.stringify(data));  // 存入 localStorage
     //applySetting(settings);
 
-    bookArray = await data.folders;
     reflashRenderFolders();
 }
 async function saveData() {
@@ -125,6 +123,7 @@ function addRenderFolder(book) {//books: string array of book name
 }
 function reflashRenderFolders(){
     document.getElementById("bookList").innerHTML = '';
+    let bookArray = localStorage.getItem("userData").folders;
     bookArray.forEach(element => {
         addRenderFolder(element);
     });
@@ -142,7 +141,9 @@ async function getFolders() {//return folder name array(string)
     }
 
     const data = await response.json();
-    bookArray = data.folders;
+    let userData = localStorage.getItem("userData");
+    userData.folders = data.folders;
+    localStorage.setItem("userData",stringify(userData));
     return data.folders;
 
 }
