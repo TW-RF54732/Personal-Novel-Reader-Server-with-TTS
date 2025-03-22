@@ -110,8 +110,9 @@ function addRenderFolder(book) {//books: string array of book name
     card.className = 'card book-card';
     card.innerHTML = `
         <div class="card-body">
+            <img src="http://img.wenku8.com/image/3/3714/3714s.jpg" draggable="false" class="card-img-top">
             <h5 class="card-title">${book}</h5>
-            <img src="http://img.wenku8.com/image/3/3714/3714s.jpg" draggable="false">
+            <h6 class="card-subtitle mb-2 text-muted">2025/3/19</h6>
         </div>
     `;
     // 點擊卡片的事件
