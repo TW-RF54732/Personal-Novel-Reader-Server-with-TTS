@@ -1,9 +1,15 @@
+let edit_mode = false
+
 document.getElementById('addBookForm').onsubmit = (e) => {
     e.preventDefault();
     const bookName = document.getElementById('bookNameInput').value.trim();
     document.getElementById('bookNameInput').value = '';
     creatFolder(bookName);
 };
+function a(){
+    console.log(`edit mode:${edit_mode}`)
+    switch_edit_mode();
+}
 
 //setup function
 function getAvatar(){
@@ -120,7 +126,9 @@ function addRenderFolder(book) {//books: string array of book name
 
     col.appendChild(card);
     bookList.appendChild(col);
-    initSortable()
+    if(edit_mode){
+        initSortable();
+    }
 }
 function reflashRenderFolders(){
     document.getElementById("bookList").innerHTML = '';
@@ -184,6 +192,16 @@ function initSortable() {
     });
 }
 
+function switch_edit_mode(){
+    if(edit_mode){
+        edit_mode = false;
+        sortable.destroy();
+    }
+    else{
+        edit_mode = true;
+        initSortable();
+    }
+}
 
 async function initUser(password) {
     await fetch('/api/user/initUser',{
@@ -212,5 +230,5 @@ async function logout() {
 window.onload = function(){
     getData();
     getAvatar();
-    initSortable();
+    // initSortable();
 }
