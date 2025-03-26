@@ -390,6 +390,9 @@ def b64Decode(code):
 def getUser(userName):
     return User.query.filter_by(username=userName).first()
 
+print(f"Flask is running in threaded mode: {app.config['THREADS'] if 'THREADS' in app.config else 'Unknown'}")
+
+
 if __name__ == "__main__":
     app.run(debug=True,host="0.0.0.0",port=54733)
 
