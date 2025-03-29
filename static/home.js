@@ -6,8 +6,7 @@ document.getElementById('addBookForm').onsubmit = (e) => {
     document.getElementById('bookNameInput').value = '';
     creatFolder(bookName);
 };
-function a(){
-    console.log(`edit mode:${edit_mode}`)
+function switchMode(){
     switch_edit_mode();
 }
 
@@ -70,6 +69,15 @@ async function creatFolder(folderName) {
             const data = await response.json();
             console.log("成功回應:", data);
             addRenderFolder(folderName);
+            let userData = JSON.parse(localStorage.getItem("userData"))
+            if (!userData.folders.includes(folderName)) {
+                userData.folders.push(folderName);
+                localStorage.setItem("userData", JSON.stringify(userData));
+                console.log(`✅ 已新增 "${folderName}" 到 folders`);
+            } else {
+                console.log(`⚠️ "${folderName}" 已存在於 folders`);
+            }
+            saveData();
         } else {
             const errorData = await response.json();
             console.error("錯誤回應:", errorData);
@@ -84,16 +92,7 @@ async function creatFolder(folderName) {
         console.error("網路或伺服器錯誤", error);
         return 400;
     });
-    let userData = JSON.parse(localStorage.getItem("userData"))
-    if (!userData.folders.includes(folderName)) {
-        userData.folders.push(folderName);
-        localStorage.setItem("userData", JSON.stringify(userData));
-        console.log(`✅ 已新增 "${folderName}" 到 folders`);
-    } else {
-        console.log(`⚠️ "${folderName}" 已存在於 folders`);
-    }
-
-    saveData();
+    
 }
 
 async function deleteFolder(folderName) {
@@ -122,7 +121,7 @@ function addRenderFolder(book) {//books: string array of book name
         </div>
     `;
     // 點擊卡片的事件
-    card.onclick = () => alert(`打開「${book}」`);
+    card.onclick = () => openBook(col.dataset.folderName);
 
     col.appendChild(card);
     bookList.appendChild(col);
@@ -130,6 +129,24 @@ function addRenderFolder(book) {//books: string array of book name
         initSortable();
     }
 }
+
+function openBook(folderName){
+    fetch('/api/bookExist',{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderName }),
+        credentials:"include"
+    }).then(async response =>{
+        if (response.ok) {
+            localStorage.setItem("currentBook", folderName); // 儲存書籍名稱
+            window.location.href = "/book"; // 跳轉到 /book 頁面
+        } else {
+            let errorData = await response.json();
+            alert("錯誤：" + errorData.error);
+        }
+    })
+}
+
 function reflashRenderFolders(){
     document.getElementById("bookList").innerHTML = '';
     let userData = JSON.parse(localStorage.getItem("userData"));
@@ -224,6 +241,7 @@ async function logout() {
         method: "POST",
         credentials: "include"  // 讓 Cookie 被正確刪除
     });
+    // location.reload()
 }
 
 //setup

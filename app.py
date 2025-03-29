@@ -318,12 +318,12 @@ def getFolders():
         return logoutResponse, 404
 
     userDir = os.path.join(USER_DIR,user.user_id)
-    userBookDir = os.path.join(userDir,"books")
+    userBooksDir = os.path.join(userDir,"books")
 
-    if not os.path.exists(userBookDir):
+    if not os.path.exists(userBooksDir):
         return jsonify({"error": "書籍資料夾不存在"}), 404
     
-    subfolders_b64 = [entry.name for entry in os.scandir(userBookDir) if entry.is_dir()]
+    subfolders_b64 = [entry.name for entry in os.scandir(userBooksDir) if entry.is_dir()]
     subfolders = []
     for encode in subfolders_b64:
         decoded = b64Decode(encode)
@@ -331,11 +331,48 @@ def getFolders():
 
     return jsonify({"folders": subfolders})  # 回傳 JSON
 #/Folder
-#book
-@app.route('/api/user/folder/uploadFile',methods=["POST"])
+#open book
+@app.route('/api/bookExist',methods=["POST"])
 @jwt_required()
-def uploadFile():
-    return 0
+def checkBookExist():
+    currentUser = get_jwt_identity()
+    user = getUser(currentUser)
+
+
+    openBookName = request.get_json()
+
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
+    
+    userBooksDir = os.path.join(USER_DIR,user.user_id,"books")
+
+    if(not os.path.exists(os.path.join(userBooksDir,b64Encode(openBookName.get("folderName"))))):
+        return jsonify({"error": f"打開: {openBookName} 失敗"}), 404
+
+    return jsonify({"Success": f"打開: {openBookName}"}), 200
+
+@app.route("/book",methods=["GET"])
+@jwt_required()
+def openBook():
+    return render_template("book.html")
+#/open book
+#book
+@app.route('/api/user/book/getCover',methods=["POST"])
+@jwt_required()
+def getCover():
+    user = getUser(get_jwt_identity())
+    openBookName = request.get_json().get("folderName")
+
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
+    
+    inBookDir = os.path.join(USER_DIR,user.user_id,"books",b64Encode(openBookName))
+    coverPath = os.path.join(inBookDir,"image.jpg")
+    return send_file(coverPath, mimetype='image/jpg')
 
 #/book
 #Function
@@ -389,8 +426,6 @@ def b64Decode(code):
 
 def getUser(userName):
     return User.query.filter_by(username=userName).first()
-
-print(f"Flask is running in threaded mode: {app.config['THREADS'] if 'THREADS' in app.config else 'Unknown'}")
 
 
 if __name__ == "__main__":
