@@ -90,6 +90,7 @@ async function creatFolder(folderName) {
     })
     .catch(error => {
         console.error("網路或伺服器錯誤", error);
+        alert("網路或伺服器錯誤")
         return 400;
     });
     
@@ -130,15 +131,15 @@ function addRenderFolder(book) {//books: string array of book name
     }
 }
 
-function openBook(folderName){
-    fetch('/api/bookExist',{
+function bookExist(folderName){
+    fetch('/api/user/getBookData',{
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folderName }),
         credentials:"include"
     }).then(async response =>{
         if (response.ok) {
-            localStorage.setItem("currentBook", folderName); // 儲存書籍名稱
+            localStorage.setItem("currentBookData", folderName); // 儲存書籍名稱
             window.location.href = "/book"; // 跳轉到 /book 頁面
         } else {
             let errorData = await response.json();
@@ -212,7 +213,10 @@ function initSortable() {
 function switch_edit_mode(){
     if(edit_mode){
         edit_mode = false;
-        sortable.destroy();
+        if(sortable){
+            sortable.destroy();
+            sortable = undefined;
+        }
     }
     else{
         edit_mode = true;

@@ -1,5 +1,5 @@
 #Main file! Start the server here.
-
+import readerTool as rt
 from flask import Flask ,request,send_file,send_from_directory,jsonify,make_response,redirect,url_for,render_template
 import requests
 from requests import get
@@ -293,7 +293,7 @@ def DeleteFolder():
         return jsonify({"error": "資料夾名稱格式錯誤"}), 400
     print(dirName)
 
-    base64_string = b64Encode(dirName)
+    base64_string = rt.b64Encode(dirName)
     user_book_path = os.path.join(USER_DIR,f'{user_ID}/books/{base64_string}')
     
     if os.path.exists(user_book_path):
@@ -326,18 +326,17 @@ def getFolders():
     subfolders_b64 = [entry.name for entry in os.scandir(userBooksDir) if entry.is_dir()]
     subfolders = []
     for encode in subfolders_b64:
-        decoded = b64Decode(encode)
+        decoded = rt.b64Decode(encode)
         subfolders.append(decoded)
 
     return jsonify({"folders": subfolders})  # 回傳 JSON
 #/Folder
 #open book
-@app.route('/api/bookExist',methods=["POST"])
+@app.route('/api/user/getBookData',methods=["POST"])
 @jwt_required()
 def checkBookExist():
     currentUser = get_jwt_identity()
     user = getUser(currentUser)
-
 
     openBookName = request.get_json()
 
@@ -347,11 +346,12 @@ def checkBookExist():
         return logoutResponse, 404
     
     userBooksDir = os.path.join(USER_DIR,user.user_id,"books")
+    requestBookDir = os.path.join(userBooksDir,rt.b64Encode(openBookName.get("folderName")))
+    if(not os.path.exists(request)):
+        return jsonify({"error": f"{openBookName} 不存在"}), 404
 
-    if(not os.path.exists(os.path.join(userBooksDir,b64Encode(openBookName.get("folderName"))))):
-        return jsonify({"error": f"打開: {openBookName} 失敗"}), 404
-
-    return jsonify({"Success": f"打開: {openBookName}"}), 200
+    data = rt.readJsonFile(os.path.join(requestBookDir,"data.json"))
+    return jsonify(data),200
 
 @app.route("/book",methods=["GET"])
 @jwt_required()
@@ -370,7 +370,7 @@ def getCover():
         unset_jwt_cookies(logoutResponse)
         return logoutResponse, 404
     
-    inBookDir = os.path.join(USER_DIR,user.user_id,"books",b64Encode(openBookName))
+    inBookDir = os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(openBookName))
     coverPath = os.path.join(inBookDir,"image.jpg")
     return send_file(coverPath, mimetype='image/jpg')
 
@@ -410,19 +410,6 @@ def init(template,dir,folderName):
     shutil.copytree(template, userFolder)  # 複製資料夾
     print(f"資料夾已複製到 {userFolder}")
 
-def b64Encode(cypher):
-    string_bytes = cypher.encode("UTF-8")
-
-    base64_bytes = base64.b64encode(string_bytes)
-    base64_string = base64_bytes.decode("UTF-8")
-    return base64_string
-
-def b64Decode(code):
-    base64_bytes = code.encode("UTF-8")
-
-    string_bytes = base64.b64decode(base64_bytes)
-    de_string = string_bytes.decode("UTF-8")
-    return de_string
 
 def getUser(userName):
     return User.query.filter_by(username=userName).first()
