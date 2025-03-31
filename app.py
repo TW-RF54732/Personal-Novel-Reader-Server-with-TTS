@@ -254,26 +254,31 @@ def creadFolder():
         logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
         unset_jwt_cookies(logoutResponse)
         return logoutResponse, 404
-    user_ID = user.user_id
-
-    user_book_path = os.path.join(USER_DIR,f'{user_ID}/books')
+    
+    user_book_path = os.path.join(USER_DIR,user.user_id,'books')
     dirName = data.get('folderName')
-    try:
-        dirName_bytes = dirName.encode("utf-8")
-        base64_bytes = base64.b64encode(dirName_bytes)
-        b64DirName = base64_bytes.decode("utf-8")
-    except:
-        return "Name not allowed"
-    checkPath = os.path.join(user_book_path,b64DirName)
-    if os.path.isdir(checkPath):
+    b64dirName = rt.b64Encode(dirName)
+
+    theBook = os.path.join(user_book_path,b64dirName)
+    if os.path.isdir(theBook):
         print("資料夾已存在")
         return jsonify({"error": "資料夾已存在"}), 409
     
-    init(TEMPLATE_BOOK,user_book_path,b64DirName)
+    init(TEMPLATE_BOOK,user_book_path,b64dirName)
     
     print(f"資料夾已複製到 {user_book_path}")
 
-    return jsonify({"Success": f"已創建: {dirName}"}), 200
+    data_path = os.path.join(theBook,"data.json")
+    print(data_path)
+    data = rt.readJsonFile(data_path)
+    if(not data):
+        print(f"初始化 {b64dirName} 失敗")
+        return jsonify({"error": "初始化失敗"}), 409
+    
+    data["bookName"] = dirName
+    rt.writeJsonFile(data_path,data)
+
+    return jsonify({"Success": f"已創建: {b64dirName}"}), 200
 
 @app.route('/api/user/deleteFolder',methods=["POST"])
 @jwt_required()
@@ -334,11 +339,11 @@ def getFolders():
 #open book
 @app.route('/api/user/getBookData',methods=["POST"])
 @jwt_required()
-def checkBookExist():
+def getBookData():
     currentUser = get_jwt_identity()
     user = getUser(currentUser)
 
-    openBookName = request.get_json()
+    openBookName = request.get_json().get("folderName")
 
     if not user:
         logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
@@ -346,12 +351,11 @@ def checkBookExist():
         return logoutResponse, 404
     
     userBooksDir = os.path.join(USER_DIR,user.user_id,"books")
-    requestBookDir = os.path.join(userBooksDir,rt.b64Encode(openBookName.get("folderName")))
-    if(not os.path.exists(request)):
+    requestBookDir = os.path.join(userBooksDir,rt.b64Encode(openBookName))
+    if(not os.path.exists(os.path.join(requestBookDir,"data.json"))):
         return jsonify({"error": f"{openBookName} 不存在"}), 404
 
-    data = rt.readJsonFile(os.path.join(requestBookDir,"data.json"))
-    return jsonify(data),200
+    return send_file(os.path.join(requestBookDir,"data.json"),mimetype="application/json"),200
 
 @app.route("/book",methods=["GET"])
 @jwt_required()

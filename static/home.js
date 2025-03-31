@@ -122,7 +122,7 @@ function addRenderFolder(book) {//books: string array of book name
         </div>
     `;
     // 點擊卡片的事件
-    card.onclick = () => openBook(col.dataset.folderName);
+    card.onclick = () => getBookData(col.dataset.folderName);
 
     col.appendChild(card);
     bookList.appendChild(col);
@@ -131,7 +131,7 @@ function addRenderFolder(book) {//books: string array of book name
     }
 }
 
-function bookExist(folderName){
+function getBookData(folderName){
     fetch('/api/user/getBookData',{
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -139,7 +139,8 @@ function bookExist(folderName){
         credentials:"include"
     }).then(async response =>{
         if (response.ok) {
-            localStorage.setItem("currentBookData", folderName); // 儲存書籍名稱
+            const responseJson = await response.json()
+            localStorage.setItem("currentBookData", JSON.stringify(responseJson)); // 儲存書籍名稱
             window.location.href = "/book"; // 跳轉到 /book 頁面
         } else {
             let errorData = await response.json();
@@ -231,6 +232,7 @@ async function initUser(password) {
         body: JSON.stringify({ password }),
         credentials:"include"
     })
+    window.location.href = "/login";
 }
 
 function applySetting(data){//unfinish
@@ -245,7 +247,7 @@ async function logout() {
         method: "POST",
         credentials: "include"  // 讓 Cookie 被正確刪除
     });
-    // location.reload()
+    location.reload()
 }
 
 //setup

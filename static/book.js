@@ -1,4 +1,5 @@
-const bookName = localStorage.getItem("currentBook")
+const book_data = JSON.parse(localStorage.getItem("currentBookData"))
+const bookName = book_data.bookName
 
 function getCover(){
   const cover = document.getElementById('cover');
@@ -61,5 +62,5 @@ document.getElementById("confirmDelete").addEventListener("click", function () {
 window.onload = function(){
   const title = document.getElementById("title");
   title.innerText = bookName;
-  getCover()
+  getCover();
 }
