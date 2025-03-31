@@ -8,4 +8,4 @@ Reader.code-workspace
 .gitignore
 instance/
 testArea/
-.venv/
+venv/
