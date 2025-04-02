@@ -42,7 +42,7 @@ async function getData() {
 
     reflashRenderFolders();
 }
-async function saveData() {
+async function uploadNewData() {
     fetch('/api/user/saveData',{
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,6 +52,23 @@ async function saveData() {
     .then(response => console.log(response))
     .catch(error => console.log(error));
 }
+
+function getCover(bookName){
+    fetch("/api/user/book/getCover",{
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ folderName:bookName }),
+          credentials:"include"
+      })
+      .then(response => response.blob())
+      .then(blob => {
+          // 將圖片的 Blob 轉為 Object URL
+          return URL.createObjectURL(blob);
+      })
+      .catch(error => {
+          console.error('Error fetching cover:', error);
+      });
+  }
 //setup function--
 
 //folder
@@ -77,7 +94,7 @@ async function creatFolder(folderName) {
             } else {
                 console.log(`⚠️ "${folderName}" 已存在於 folders`);
             }
-            saveData();
+            uploadNewData();
         } else {
             const errorData = await response.json();
             console.error("錯誤回應:", errorData);
@@ -97,12 +114,32 @@ async function creatFolder(folderName) {
 }
 
 async function deleteFolder(folderName) {
-    fetch('/api/user/deleteFolder',{
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folderName }),
-        credentials:"include"
-    });
+    userData = JSON.parse(localStorage.getItem("userData"))
+
+    if(userData.folders.includes(folderName)){
+        await fetch('/api/user/deleteFolder',{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ folderName }),
+            credentials:"include"
+        }).then(async response =>{
+            if(response.ok){
+                console.log("delete successful");
+                userData.folders = userData.folders.filter(book => book!==folderName);
+                console.log(`New folder is ${userData.folders}`);
+                localStorage.setItem("userData", JSON.stringify(userData));
+                uploadNewData();//need to make sure upload successful
+                //if uploaded
+                reflashRenderFolders();
+            }
+            else{
+                console.log("Delete request fail successfully")
+            }
+        })
+    }
+    else{
+        console.log("no such a file");
+    }
 }
 function addRenderFolder(book) {//books: string array of book name
     if(!book){return "error";}
@@ -116,7 +153,7 @@ function addRenderFolder(book) {//books: string array of book name
     card.className = 'card book-card';
     card.innerHTML = `
         <div class="card-body">
-            <img src="http://img.wenku8.com/image/3/3714/3714s.jpg" draggable="false" class="card-img-top">
+            <img src="http://img.wenku8.com/image/3/3714/3714s.jpg" draggable="false" class="card-img-top cover">
             <h5 class="card-title">${book}</h5>
             <h6 class="card-subtitle mb-2 text-muted">2025/3/19</h6>
         </div>
@@ -188,7 +225,7 @@ async function updateOrder(){
     let userData = JSON.parse(localStorage.getItem("userData"));
     userData.folders = newOrder;
     localStorage.setItem("userData", JSON.stringify(userData));
-    saveData();
+    uploadNewData();
 }
 //folder--
 
