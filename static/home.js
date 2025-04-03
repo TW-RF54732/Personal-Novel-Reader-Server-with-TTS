@@ -53,22 +53,23 @@ async function uploadNewData() {
     .catch(error => console.log(error));
 }
 
-function getCover(bookName){
-    fetch("/api/user/book/getCover",{
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ folderName:bookName }),
-          credentials:"include"
-      })
-      .then(response => response.blob())
-      .then(blob => {
-          // 將圖片的 Blob 轉為 Object URL
-          return URL.createObjectURL(blob);
-      })
-      .catch(error => {
-          console.error('Error fetching cover:', error);
-      });
-  }
+function getCover(bookName) {
+    return fetch("/api/user/book/getCover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folderName: bookName }),
+        credentials: "include"
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("封面圖片請求失敗");
+        return response.blob();
+    })
+    .then(blob => URL.createObjectURL(blob)) // 轉換成本地 URL
+    .catch(error => {
+        console.error("Error fetching cover:", error);
+        return "fallback-image.jpg"; // 若請求失敗，回傳預設圖片
+    });
+}
 //setup function--
 
 //folder
@@ -158,6 +159,15 @@ function addRenderFolder(book) {//books: string array of book name
             <h6 class="card-subtitle mb-2 text-muted">2025/3/19</h6>
         </div>
     `;
+    //設定封面
+
+    const imgElement = card.querySelector("img");
+
+    // 動態獲取封面圖片
+    getCover(book).then(imageUrl => {
+        imgElement.src = imageUrl; // ✅ 設定圖片來源
+    });
+
     // 點擊卡片的事件
     card.onclick = () => getBookData(col.dataset.folderName);
 
@@ -188,7 +198,7 @@ function getBookData(folderName){
 
 function reflashRenderFolders(){
     document.getElementById("bookList").innerHTML = '';
-    let userData = JSON.parse(localStorage.getItem("userData"));
+    const userData = JSON.parse(localStorage.getItem("userData"));
     userData.folders.forEach(element => {
         addRenderFolder(element);
     });
