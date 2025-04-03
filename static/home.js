@@ -179,7 +179,7 @@ function addRenderFolder(book) {//books: string array of book name
 }
 
 function getBookData(folderName){
-    fetch('/api/user/getBookData',{
+    fetch('/api/user/book/getBookData',{
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folderName }),

@@ -159,6 +159,7 @@ def login():
     return response
 
 @app.route("/api/logout", methods=["POST"])
+@jwt_required()
 def logout():
     response = make_response(jsonify({"message": "登出成功"}))
     unset_jwt_cookies(response)  # 刪除 JWT Cookie
@@ -337,7 +338,7 @@ def getFolders():
     return jsonify({"folders": subfolders})  # 回傳 JSON
 #/Folder
 #open book
-@app.route('/api/user/getBookData',methods=["POST"])
+@app.route('/api/user/book/getBookData',methods=["POST"])
 @jwt_required()
 def getBookData():
     currentUser = get_jwt_identity()
@@ -377,6 +378,29 @@ def getCover():
     inBookDir = os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(openBookName))
     coverPath = os.path.join(inBookDir,"image.jpg")
     return send_file(coverPath, mimetype='image/jpg')
+
+@app.route("/api/user/book/uploadCover", methods=["POST"])
+@jwt_required()
+def upload_cover():
+    if "cover" not in request.files or "bookName" not in request.form:
+        return jsonify({"error": "缺少參數"}), 400
+
+    user = getUser(get_jwt_identity())
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
+    
+    cover = request.files["cover"]  # 取得上傳的圖片
+    book_name = request.form["bookName"]  # 取得書名 (string)
+
+    inBookDir = os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(book_name))
+
+    filename = "image.jpg"  # 用書名當作檔案名稱
+    save_path = os.path.join(inBookDir, filename)  
+    cover.save(save_path)  # 儲存圖片
+
+    return jsonify({"success": True, "imageUrl": f"/{save_path}"})
 
 #/book
 #Function

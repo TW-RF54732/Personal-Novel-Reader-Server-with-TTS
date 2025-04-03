@@ -1,6 +1,39 @@
 const book_data = JSON.parse(localStorage.getItem("currentBookData"))
 const bookName = book_data.bookName
 
+const coverImg = document.querySelector(".cover"); // 取得 <img>
+const coverUpload = document.getElementById("coverUpload"); // 取得 <input>
+
+coverImg.addEventListener("click", () => {
+  coverUpload.click(); // 🔥 觸發上傳檔案視窗
+});
+
+coverUpload.addEventListener("change", event => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("cover", file);
+  formData.append("bookName", bookName);
+  
+  fetch("/api/user/book/uploadCover", {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      getCover(bookName);
+    } else {
+      alert("上傳失敗");
+    }
+  })
+  .catch(error => console.error("上傳錯誤:", error));
+
+});
+
+
 function getCover(){
   const cover = document.getElementById('cover');
   fetch("/api/user/book/getCover",{
@@ -26,15 +59,15 @@ function getCover(){
 // });
 
 
-// document.getElementById("uploadConfirm").addEventListener("click",
-//     function addListItem(){
-//         const chapterListItem = `<li class="list-group-item d-flex justify-content-between align-items-center">
-//             something
-//             <button type="button" class="btn btn-outline-danger btn-sm" id="delChrItem">刪除</button>
-//         </li>`;
-//         document.getElementById("chapterList").innerHTML += chapterListItem;
-//     }
-// );
+document.getElementById("uploadConfirm").addEventListener("click",
+    function addListItem(){
+        const chapterListItem = `<li class="list-group-item d-flex justify-content-between align-items-center">
+            something
+            <button type="button" class="btn btn-outline-danger btn-sm" id="delChrItem">刪除</button>
+        </li>`;
+        document.getElementById("chapterList").innerHTML += chapterListItem;
+    }
+);
 
 let deleteTarget = null; // 記錄要刪除的項目
 
