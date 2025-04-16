@@ -1,8 +1,7 @@
 #Main file! Start the server here.
-import readerTool as rt
+import readerTools as rt
 from flask import Flask ,request,send_file,send_from_directory,jsonify,make_response,redirect,url_for,render_template
 import requests
-from requests import get
 import json
 import io
 import os
@@ -11,7 +10,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager,unset_jwt_cookies, set_access_cookies,create_access_token, jwt_required, get_jwt_identity,verify_jwt_in_request
 import shutil
-import base64
 from datetime import timedelta
 #Set
 app=Flask(__name__)
@@ -57,6 +55,14 @@ def index():
 
     return redirect(url_for("loginPage"))  # 未登入，轉向 /login
 
+@app.route("/login")
+def loginPage():
+    return render_template("Login.html")  # 這裡回傳 HTML
+
+@app.route('/register')
+def registerPage():
+    return render_template('Register.html')
+
 @app.route("/home")#登入導入，否則導入/login
 def home():
     try:
@@ -69,13 +75,10 @@ def home():
 
     return redirect(url_for("loginPage"))  # 未登入，轉向 /login
 
-@app.route("/login")
-def loginPage():
-    return render_template("Login.html")  # 這裡回傳 HTML
-
-@app.route('/register')
-def registerPage():
-    return render_template('Register.html')
+@app.route("/reading")
+@jwt_required()
+def readingPage():
+    return render_template("Reading.html")
 
 @app.route('/favicon.ico',methods=['GET'])
 def favicon():
