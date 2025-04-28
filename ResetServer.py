@@ -18,6 +18,5 @@ def clear_folder(folder_path):
     else:
         print(f"⚠️ 資料夾 '{folder_path}' 不存在")
 
-# 使用範例
 clear_folder(DATA_BASE_PATH)
 clear_folder(USER_PATH)

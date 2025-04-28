@@ -33,6 +33,9 @@ coverUpload.addEventListener("change", event => {
 
 });
 
+document.getElementById("startReading").addEventListener("click",e=>{
+  window.location.href = "/reading";
+});
 
 function getCover(){
   const cover = document.getElementById('cover');
