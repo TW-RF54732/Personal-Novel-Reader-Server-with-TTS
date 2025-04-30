@@ -103,8 +103,16 @@ def call_VITS_API():
         download_name="processed.wav"
     )
 
-@app.route('/get_txt',methods=['GET'])
+@app.route('/get_txt',methods=['POST'])
+@jwt_required()
 def get_txt():
+    data = request.get_json()
+    currentUser = get_jwt_identity()
+    user = getUser(currentUser)
+    bookName = data.get("bookName")
+    chrName = data.get("chrName")
+    bookFolderPath = os.path.join(USER_DIR,user.user_id,rt.b64Encode(bookName))
+    
     return send_file("users/exAccount/testBook/3714.txt", as_attachment=True)
 
 @app.route('/getProgress',methods=['GET'])

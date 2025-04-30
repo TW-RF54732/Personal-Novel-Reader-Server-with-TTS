@@ -1,7 +1,8 @@
 let lines;
 let vocals=[];
-let ReadingProgress=[];
+let ReadingProgress=[];//朗讀進度
 
+//local only
 let cacheProgess = 0;
 let do_cache=false;
 let buffAmount = 5;
@@ -10,11 +11,12 @@ let readingLine=1,readPrevious;
 let skipMode=false;
 let autoScroll = true,isAutoScrolling = false;
 
-// let server_url = "http://leo54732.duckdns.org:54732";
-let referWavPath = "X:/vscode/GVITS/GPT-SoVITS-beta/GPT-SoVITS-beta0706/SetUp/Anoke/Anoke_SetupVoice.wav";
-let referText = "那至少是有一点好处，跟你说，他除了为自己乞讨以外，他还为他朋友帮他去乞讨。";
+//TTS setting
+let referWavPath = "X:/vscode/GVITS/GPT-SoVITS-beta/GPT-SoVITS-beta0706/SetUp/Anoke/Anoke_SetupVoice.wav";//temp data, this sould be setup in server not client
+let referText = "那至少是有一点好处，跟你说，他除了为自己乞讨以外，他还为他朋友帮他去乞讨。";//temp data, this sould be setup in server not client
 let promptLanguage = "zh";  
 let textLanguage = "zh";
+
 
 //EventListener
 document.getElementById('fileInput').addEventListener('change', function (event) {
@@ -56,12 +58,7 @@ async function getProgress() {
     const number = parseInt(text, 10);  // 轉換成數字
     return number;
 }
-async function fetchTxt() {
-    const response = await fetch("/get_txt");  // 向後端請求
-    const text = await response.text();  // 解析成文字
-    lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
-    document.getElementById('textDisplay').innerHTML = `${lines.map((line, index) => `<p class="lines" id=p${index}>${index+1}:${line}</p>`).join('\n')}`;
-}
+
 async function setUp(){
     await fetchTxt();
     cacheProgess = await getProgress();
