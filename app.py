@@ -323,6 +323,35 @@ def DeleteFolder():
     print(f"已刪除資料夾: {user_book_path}")
     return jsonify({"Success": f"已刪除: {dirName}"}), 200
 
+@app.route('/api/user/renameBookFolder',methods=["POST"])
+@jwt_required()
+def renameFolder():
+    current_user = get_jwt_identity()  # 取得 JWT 內的 username
+    user = getUser(current_user)
+    
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 404
+    
+    data = request.get_json()
+    newName = data.get("newName")
+    currentBook = data.get("oldName")
+
+    base64_string = rt.b64Encode(currentBook)
+    user_book_path = os.path.join(USER_DIR,f'{user.user_id}/books/{base64_string}')
+    base64_string = rt.b64Encode(newName)
+    new_user_book_path = os.path.join(USER_DIR,f'{user.user_id}/books/{base64_string}')
+    if os.path.exists(user_book_path):
+        os.rename(user_book_path,new_user_book_path)
+        print(f"資料夾已改名為{newName}")
+        return jsonify({"Success": f"以改名: {newName}"}), 200
+    else:
+        print("資料夾不存在")
+        return jsonify({"error": "資料夾不存在不存在"}), 404
+
+
+
 @app.route('/api/user/getFolders',methods=["GET"])
 @jwt_required()
 def getFolders():

@@ -72,6 +72,10 @@ document.getElementById("uploadConfirm").addEventListener("click",
     }
 );
 
+function refleshRenderChr(){
+
+}
+
 let deleteTarget = null; // 記錄要刪除的項目
 
 document.getElementById("chapterList").addEventListener("click", function (event) {
@@ -93,7 +97,36 @@ document.getElementById("confirmDelete").addEventListener("click", function () {
   modalInstance.hide(); // 手動關閉 Modal
 });
 
+function deleteChr(bookName){
 
+}
+
+function renameChr(){
+
+}
+
+function renameChrBookFolder(newName){
+  fetch('/api/user/renameBookFolder', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      newName: newName,
+      oldName: bookName
+    }),
+    credentials: 'include' // 若有使用 cookie、JWT 等身份驗證時加上
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('成功:', data);
+    book_data.bookName=newName
+    
+  })
+  .catch(error => {
+    console.error('錯誤:', error);
+  });
+}
 
 window.onload = function(){
   const title = document.getElementById("title");
