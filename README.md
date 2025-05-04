@@ -16,6 +16,7 @@
 ###你需要具備
 1. `python3`，目前測試環境為`python 3.13.2`，不過這東不複雜，python3應該都可以
 2. 你的python有`pip`或你能自己安裝`requirements.txt`裡的依賴庫。
+3. 你需要git
 
 ### 安裝步驟
 
