@@ -47,4 +47,11 @@ pip install -r .\requirements.txt
 ```
 python app.py
 ```
-
+#### 懶人指令
+```
+git clone https://github.com/TW-RF54732/web-reader-for-local-TTS-API.git
+cd .\web-reader-for-local-TTS-API\
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r .\requirements.txt
+```
