@@ -105,7 +105,23 @@ function renameChr(){
 
 }
 
-function renameChrBookFolder(newName){
+function updateFolderNameInUserData(oldName, newName) {
+  const userDataRaw = localStorage.getItem('userData');
+  if (!userDataRaw) return;
+
+  const userData = JSON.parse(userDataRaw);
+  const folders = userData.folders;
+
+  const index = folders.indexOf(oldName);
+  if (index !== -1) {
+    folders[index] = newName;
+    userData.folders = folders;
+    localStorage.setItem('userData', JSON.stringify(userData));
+  }
+}
+
+
+function renameBookFolder(newName) {
   fetch('/api/user/renameBookFolder', {
     method: 'POST',
     headers: {
@@ -115,17 +131,34 @@ function renameChrBookFolder(newName){
       newName: newName,
       oldName: bookName
     }),
-    credentials: 'include' // 若有使用 cookie、JWT 等身份驗證時加上
+    credentials: 'include'
   })
-  .then(response => response.json())
-  .then(data => {
-    console.log('成功:', data);
-    book_data.bookName=newName
-    
+  .then(async response => {
+    if (response.ok) {
+      const bookData = await response.json();
+      updateFolderNameInUserData(bookName,newName);
+      localStorage.setItem("currentBookData", JSON.stringify(bookData));
+      uploadNewData();
+      document.getElementById("title").innerHTML = newName;
+    } else {
+      const error = await response.json();
+      console.error('伺服器錯誤:', error);
+    }
   })
   .catch(error => {
-    console.error('錯誤:', error);
+    console.error('連線錯誤:', error);
   });
+}
+
+async function uploadNewData() {
+  fetch('/api/user/saveData',{
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: localStorage.getItem("userData"),
+      credentials:"include"
+  })
+  .then(response => console.log(response))
+  .catch(error => console.log(error));
 }
 
 window.onload = function(){

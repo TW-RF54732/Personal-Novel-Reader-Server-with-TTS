@@ -342,10 +342,17 @@ def renameFolder():
     user_book_path = os.path.join(USER_DIR,f'{user.user_id}/books/{base64_string}')
     base64_string = rt.b64Encode(newName)
     new_user_book_path = os.path.join(USER_DIR,f'{user.user_id}/books/{base64_string}')
+    new_book_data_path = os.path.join(new_user_book_path,"data.json")
+    if(os.path.exists(new_user_book_path)):
+        return jsonify({"error": f"Name{newName} already exit"}),400
     if os.path.exists(user_book_path):
         os.rename(user_book_path,new_user_book_path)
         print(f"資料夾已改名為{newName}")
-        return jsonify({"Success": f"以改名: {newName}"}), 200
+        bookData = rt.readJsonFile(new_book_data_path)
+        bookData["bookName"] = newName
+        rt.writeJsonFile(new_book_data_path,bookData)
+        print(f'已更新data.json, 書名為{newName}')
+        return jsonify(bookData), 200
     else:
         print("資料夾不存在")
         return jsonify({"error": "資料夾不存在不存在"}), 404
