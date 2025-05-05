@@ -60,6 +60,41 @@ function getCover(){
 //     console.log("你雙擊了：" + text);
 //   }
 // });
+document.getElementById("uploadConfirm").addEventListener('click',e=>{
+  uploadFiles();
+});
+function uploadFiles() {
+  const input = document.getElementById('fileInput');
+  const files = input.files;
+
+  if (!files.length) {
+    alert("請選擇檔案");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("bookName", bookName);
+  for (const file of files) {
+      if (file.type === "text/plain") {
+          formData.append("files", file);
+      } else {
+          alert(`${file.name} 不是 .txt 檔案，已跳過`);
+      }
+  }
+
+  fetch('api/user/book/uploadChr', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+  })
+  .then(res => res.json())
+  .then(data => {
+      console.log("伺服器回傳：", data);
+  })
+  .catch(err => {
+      console.error("上傳錯誤：", err);
+  });
+}
 
 
 document.getElementById("uploadConfirm").addEventListener("click",

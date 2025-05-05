@@ -11,6 +11,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager,unset_jwt_cookies, set_access_cookies,create_access_token, jwt_required, get_jwt_identity,verify_jwt_in_request
 import shutil
 from datetime import timedelta
+from werkzeug.utils import secure_filename
 #Set
 app=Flask(__name__)
 
@@ -223,9 +224,9 @@ def get_data():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     user_ID = user.user_id
 
     setting_path = os.path.join(USER_DIR,f'{user_ID}/userData.json')
@@ -237,9 +238,9 @@ def saveData():
     current_user = get_jwt_identity()
     user = getUser(current_user)
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     user_id = user.user_id
     user_folder = os.path.join(USER_DIR, user_id)
 
@@ -263,9 +264,9 @@ def creadFolder():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = User.query.filter_by(username=current_user).first()
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     
     user_book_path = os.path.join(USER_DIR,user.user_id,'books')
     dirName = data.get('folderName')
@@ -300,9 +301,9 @@ def DeleteFolder():
     current_user = get_jwt_identity()  # 取得 JWT 內的 username
     user = getUser(current_user)
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     user_ID = user.user_id
 
     dirName = data.get('folderName')
@@ -330,9 +331,9 @@ def renameFolder():
     user = getUser(current_user)
     
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     
     data = request.get_json()
     newName = data.get("newName")
@@ -357,7 +358,37 @@ def renameFolder():
         print("資料夾不存在")
         return jsonify({"error": "資料夾不存在不存在"}), 404
 
+@app.route('/api/user/book/uploadChr',methods=["POST"])
+@jwt_required()
+def uploadChr():
+    current_user = get_jwt_identity()
+    user = getUser(current_user)
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 401
+    
+    bookName = request.form.get("bookName")
+    if not bookName:
+        return jsonify({"error": "缺少書名"}), 400
+    
+    b64BookName = rt.b64Encode(bookName)
+    USER_BOOK_DIR = os.path.join(USER_DIR,user.user_id,"books",b64BookName)
+    if not os.path.exists(USER_BOOK_DIR):
+        return jsonify({"error": "書名有誤或該書不存在"}), 400
+    
+    files = request.files.getlist('files')
+    if not files:
+        return jsonify({"error": "沒有收到檔案"}), 400
+    
+    saved_files = []
+    for file in files:
+        if file.filename.endswith('.txt'):
+            file_path = os.path.join(USER_BOOK_DIR, rt.b64Encode(file.filename))
+            file.save(file_path)
+            saved_files.append(file.filename)
 
+    return jsonify({"saved": saved_files}), 200
 
 @app.route('/api/user/getFolders',methods=["GET"])
 @jwt_required()
@@ -366,9 +397,9 @@ def getFolders():
     user = User.query.filter_by(username=current_user).first()
 
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
 
     userDir = os.path.join(USER_DIR,user.user_id)
     userBooksDir = os.path.join(userDir,"books")
@@ -394,9 +425,9 @@ def getBookData():
     openBookName = request.get_json().get("folderName")
 
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     
     userBooksDir = os.path.join(USER_DIR,user.user_id,"books")
     requestBookDir = os.path.join(userBooksDir,rt.b64Encode(openBookName))
@@ -418,9 +449,9 @@ def getCover():
     openBookName = request.get_json().get("folderName")
 
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     
     inBookDir = os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(openBookName))
     coverPath = os.path.join(inBookDir,"image.jpg")
@@ -434,9 +465,9 @@ def upload_cover():
 
     user = getUser(get_jwt_identity())
     if not user:
-        logoutResponse = make_response(jsonify({"error": "使用者不存在"}))
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 404
+        return logoutResponse, 401
     
     cover = request.files["cover"]  # 取得上傳的圖片
     book_name = request.form["bookName"]  # 取得書名 (string)
