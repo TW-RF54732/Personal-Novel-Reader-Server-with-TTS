@@ -390,6 +390,26 @@ def uploadChr():
 
     return jsonify({"saved": saved_files}), 200
 
+@app.route('/api/user/book/getChrList',methods=["POST"])
+@jwt_required()
+def getChrList():
+    current_user = get_jwt_identity()
+    user = getUser(current_user)
+
+    data = request.get_json()
+
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 401
+    
+
+    user_book_path = os.path.join(USER_DIR,user.user_id,'books')
+    dirName = data.get('folderName')
+    b64dirName = rt.b64Encode(dirName)
+       
+
+
 @app.route('/api/user/getFolders',methods=["GET"])
 @jwt_required()
 def getFolders():

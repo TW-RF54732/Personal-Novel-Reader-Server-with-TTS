@@ -76,20 +76,24 @@ function uploadFiles() {
   formData.append("bookName", bookName);
   for (const file of files) {
       if (file.type === "text/plain") {
-          formData.append("files", file);
+        formData.append("files", file);
       } else {
-          alert(`${file.name} 不是 .txt 檔案，已跳過`);
+        alert(`${file.name} 不是 .txt 檔案，已跳過`);
       }
   }
 
   fetch('api/user/book/uploadChr', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
+    method: 'POST',
+    body: formData,
+    credentials: 'include'
   })
   .then(res => res.json())
   .then(data => {
-      console.log("伺服器回傳：", data);
+    console.log("伺服器回傳：", data);
+    book_data['order'] = data["saved"];
+    localStorage.setItem("currentBookData",JSON.stringify(book_data));
+    refleshRenderChr();
+    uploadNewData();
   })
   .catch(err => {
       console.error("上傳錯誤：", err);
@@ -97,18 +101,18 @@ function uploadFiles() {
 }
 
 
-document.getElementById("uploadConfirm").addEventListener("click",
-    function addListItem(){
-        const chapterListItem = `<li class="list-group-item d-flex justify-content-between align-items-center">
-            something
-            <button type="button" class="btn btn-outline-danger btn-sm" id="delChrItem">刪除</button>
-        </li>`;
-        document.getElementById("chapterList").innerHTML += chapterListItem;
-    }
-);
+function addListItem(listString){
+  const chapterListItem = `<li class="list-group-item d-flex justify-content-between align-items-center">
+      ${listString}
+      <button type="button" class="btn btn-outline-danger btn-sm" id="delChrItem">刪除</button>
+  </li>`;
+  document.getElementById("chapterList").innerHTML += chapterListItem;
+}
 
 function refleshRenderChr(){
-
+  book_data['order'].forEach(element => {
+    addListItem(element);
+  });
 }
 
 let deleteTarget = null; // 記錄要刪除的項目
@@ -200,4 +204,5 @@ window.onload = function(){
   const title = document.getElementById("title");
   title.innerText = bookName;
   getCover();
+  refleshRenderChr();
 }
