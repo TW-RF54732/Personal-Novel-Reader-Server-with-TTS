@@ -1,6 +1,7 @@
 import os
 import json
 import base64
+import shutil
 
 def b64Encode(cypher):
     string_bytes = cypher.encode("UTF-8")
@@ -25,6 +26,18 @@ def writeJsonFile(file_path,data):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
+def jsonOverwrite(path,data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def init(template,dir,name):
+    userFolder = os.path.join(dir,str(name))
+    # 如果目標資料夾已存在，先刪除
+    if os.path.exists(userFolder):
+        shutil.rmtree(userFolder)
+
+    shutil.copytree(template, userFolder)  # 複製資料夾
+    print(f"資料夾已複製到 {userFolder}")
 
 if __name__ == "__main__":
     print("tool test")

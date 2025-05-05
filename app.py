@@ -11,7 +11,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager,unset_jwt_cookies, set_access_cookies,create_access_token, jwt_required, get_jwt_identity,verify_jwt_in_request
 import shutil
 from datetime import timedelta
-from werkzeug.utils import secure_filename
+# from werkzeug.utils import secure_filename
 #Set
 app=Flask(__name__)
 
@@ -147,7 +147,7 @@ def register():
     
     #setup user folder
     user = User.query.filter_by(username=Username).first()
-    init(TEMPLATE_USER,USER_DIR,user.user_id)
+    rt.init(TEMPLATE_USER,USER_DIR,user.user_id)
 
     response = make_response(jsonify({"message": "登入成功"}))
     set_access_cookies(response, token)  # 設定 JWT 到 Cookie
@@ -188,7 +188,7 @@ def initUser():
     if not user or not bcrypt.check_password_hash(user.password, Password):
         return jsonify({"error": "帳號或密碼錯誤"}), 401
     else:
-        init(TEMPLATE_USER,USER_DIR,user.user_id)
+        rt.init(TEMPLATE_USER,USER_DIR,user.user_id)
         return jsonify({"Success": "使用者以格式化"}),200
 
 @app.route("/api/delete_user", methods=["POST"])
@@ -277,7 +277,7 @@ def creadFolder():
         print("資料夾已存在")
         return jsonify({"error": "資料夾已存在"}), 409
     
-    init(TEMPLATE_BOOK,user_book_path,b64dirName)
+    rt.init(TEMPLATE_BOOK,user_book_path,b64dirName)
     
     print(f"資料夾已複製到 {user_book_path}")
 
@@ -390,24 +390,24 @@ def uploadChr():
 
     return jsonify({"saved": saved_files}), 200
 
-@app.route('/api/user/book/getChrList',methods=["POST"])
-@jwt_required()
-def getChrList():
-    current_user = get_jwt_identity()
-    user = getUser(current_user)
+# @app.route('/api/user/book/getChrList',methods=["POST"])
+# @jwt_required()
+# def getChrList():
+#     current_user = get_jwt_identity()
+#     user = getUser(current_user)
 
-    data = request.get_json()
+#     data = request.get_json()
 
-    if not user:
-        logoutResponse = make_response(jsonify({"error": "未授權"}))
-        unset_jwt_cookies(logoutResponse)
-        return logoutResponse, 401
+#     if not user:
+#         logoutResponse = make_response(jsonify({"error": "未授權"}))
+#         unset_jwt_cookies(logoutResponse)
+#         return logoutResponse, 401
     
 
-    user_book_path = os.path.join(USER_DIR,user.user_id,'books')
-    dirName = data.get('folderName')
+#     user_book_path = os.path.join(USER_DIR,user.user_id,'books')
+#     dirName = data.get('folderName')
     b64dirName = rt.b64Encode(dirName)
-       
+
 
 
 @app.route('/api/user/getFolders',methods=["GET"])
@@ -500,6 +500,22 @@ def upload_cover():
 
     return jsonify({"success": True, "imageUrl": f"/{save_path}"})
 
+@app.route('/api/user/book/saveBookData',methods=["POST"])
+@jwt_required()
+def saveBookData():
+    user = getUser(get_jwt_identity())
+    newBookData = request.get_json().get("currentBookData")
+    print(newBookData)
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 401
+    
+    jsonPath = os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(newBookData.get("bookName")),"data.json")
+    rt.jsonOverwrite(jsonPath,newBookData)
+    
+    return jsonify({"success":"成功更新"}),200
+
 #/book
 #Function
 def proccess_URL(data):
@@ -527,14 +543,7 @@ def saveProgress(progressLine,json_path):
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-def init(template,dir,folderName):
-    userFolder = os.path.join(dir,str(folderName))
-    # 如果目標資料夾已存在，先刪除
-    if os.path.exists(userFolder):
-        shutil.rmtree(userFolder)
 
-    shutil.copytree(template, userFolder)  # 複製資料夾
-    print(f"資料夾已複製到 {userFolder}")
 
 
 def getUser(userName):

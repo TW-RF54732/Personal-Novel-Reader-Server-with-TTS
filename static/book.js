@@ -93,7 +93,7 @@ function uploadFiles() {
     book_data['order'] = data["saved"];
     localStorage.setItem("currentBookData",JSON.stringify(book_data));
     refleshRenderChr();
-    uploadNewData();
+    saveNewData();
   })
   .catch(err => {
       console.error("上傳錯誤：", err);
@@ -177,7 +177,7 @@ function renameBookFolder(newName) {
       const bookData = await response.json();
       updateFolderNameInUserData(bookName,newName);
       localStorage.setItem("currentBookData", JSON.stringify(bookData));
-      uploadNewData();
+      saveNewData();
       document.getElementById("title").innerHTML = newName;
     } else {
       const error = await response.json();
@@ -189,11 +189,13 @@ function renameBookFolder(newName) {
   });
 }
 
-async function uploadNewData() {
-  fetch('/api/user/saveData',{
+async function saveNewData() {
+  fetch('/api/user/book/saveBookData',{
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: localStorage.getItem("userData"),
+      body: JSON.stringify({
+        currentBookData: book_data
+      }),
       credentials:"include"
   })
   .then(response => console.log(response))
