@@ -319,7 +319,7 @@ def DeleteFolder():
         print("資料夾已刪除")
     else:
         print("資料夾不存在")
-        return jsonify({"error": "資料夾不存在不存在"}), 404
+        return jsonify({"error": "資料夾不存在"}), 404
 
     print(f"已刪除資料夾: {user_book_path}")
     return jsonify({"Success": f"已刪除: {dirName}"}), 200
@@ -505,12 +505,14 @@ def upload_cover():
 def saveBookData():
     user = getUser(get_jwt_identity())
     newBookData = request.get_json().get("currentBookData")
-    print(newBookData)
     if not user:
         logoutResponse = make_response(jsonify({"error": "未授權"}))
         unset_jwt_cookies(logoutResponse)
         return logoutResponse, 401
     
+    if not os.path.exists(os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(newBookData.get("bookName")))):
+        return jsonify({"error": "資料夾不存在"}), 404
+
     jsonPath = os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(newBookData.get("bookName")),"data.json")
     rt.jsonOverwrite(jsonPath,newBookData)
     
