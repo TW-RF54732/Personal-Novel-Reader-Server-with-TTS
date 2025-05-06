@@ -388,6 +388,7 @@ def uploadChr():
             file.save(file_path)
             saved_files.append(file.filename)
 
+    # init proccess
     return jsonify({"saved": saved_files}), 200
 
 # @app.route('/api/user/book/getChrList',methods=["POST"])
@@ -514,7 +515,7 @@ def saveBookData():
         return jsonify({"error": "資料夾不存在"}), 404
 
     jsonPath = os.path.join(USER_DIR,user.user_id,"books",rt.b64Encode(newBookData.get("bookName")),"data.json")
-    rt.jsonOverwrite(jsonPath,newBookData)
+    rt.writeJsonFile(jsonPath,newBookData)
     
     return jsonify({"success":"成功更新"}),200
 

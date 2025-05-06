@@ -202,6 +202,18 @@ async function saveNewData() {
   .catch(error => console.log(error));
 }
 
+function initProgress(){
+  const chrList = book_data.order;
+  if(chrList){
+    alert('沒有章節');
+    return;
+  }
+  book_data.progress = {[chrList[0]]:0}
+  localStorage.setItem("currentBookData", JSON.stringify(book_data));
+  console.log(localStorage.getItem("currentBookData"))
+  saveNewData();
+}
+
 window.onload = function(){
   const title = document.getElementById("title");
   title.innerText = bookName;

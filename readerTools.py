@@ -26,10 +26,6 @@ def writeJsonFile(file_path,data):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-def jsonOverwrite(path,data):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
 def init(template,dir,name):
     userFolder = os.path.join(dir,str(name))
     # 如果目標資料夾已存在，先刪除

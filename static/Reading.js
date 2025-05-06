@@ -51,12 +51,11 @@ document.getElementById("textDisplay").addEventListener("click", (event) => {
 
 //function
 async function getProgress() {
-    const respones =await fetch('/getProgress',{
-        method:'GET'
-    });
-    const text = await respones.text();
-    const number = parseInt(text, 10);  // 轉換成數字
-    return number;
+    const getProgress = JSON.parse(localStorage.getItem("currentBookData")).progress
+    if(!getProgress){
+        alert("no book data");
+    }
+    return getProgress;
 }
 
 async function setUp(){
