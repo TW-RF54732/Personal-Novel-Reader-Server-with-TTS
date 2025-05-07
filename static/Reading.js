@@ -17,27 +17,21 @@ let referText = "那至少是有一点好处，跟你说，他除了为自己乞
 let promptLanguage = "zh";  
 let textLanguage = "zh";
 
-
+const book_data = JSON.parse(localStorage.getItem("currentBookData"));
 //EventListener
-document.getElementById('fileInput').addEventListener('change', function (event) {
-    const file = event.target.files[0]; // 取得上傳的檔案
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const content = e.target.result; // 獲取檔案內容
+function renderTextToPage(text, targetElementId = 'textDisplay') {
+    // 將文字依行切開並過濾空白行
+    const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
 
-            // 根據換行符（\r\n 或 \n）切割內容成陣列
-            lines = content.split(/\r?\n/).filter(line => line.trim() !== "");
+    // 將每一行渲染為 <p> 元素
+    const html = lines.map((line, index) => 
+        `<p class="lines" id="p${index}">${index + 1}: ${line}</p>`
+    ).join('\n');
 
-            // 渲染到頁面上，顯示每一行
-            document.getElementById('textDisplay').innerHTML = `${lines.map((line, index) => `<p class="lines" id=p${index}>${index+1}:${line}</p>`).join('\n')}`;
-        };
-        
-        reader.readAsText(file, 'utf-8'); // 以 UTF-8 編碼讀取檔案
-    } else {
-        alert('請選擇一個文本檔案！');
-    }
-});
+    // 將內容寫入指定的 DOM 元素
+    document.getElementById(targetElementId).innerHTML = html;
+}
+
 document.getElementById("textDisplay").addEventListener("scroll", () => {
     if(!isAutoScrolling){
         console.log('scroll');
@@ -60,9 +54,34 @@ async function getProgress() {
 
 async function setUp(){
     await fetchTxt();
-    cacheProgess = await getProgress();
     pressCache();
     readCtrl();
+}
+async function fetchTxt() {
+    const bookName = book_data.bookName;
+    let progress = book_data.progress;
+    const keys = Object.keys(progress);  // ["chapter1"]
+    const chrName = keys[0];
+    cacheProgess = progress[chrName];
+
+    fetch("/api/user/book/getChr", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          bookName: bookName,
+          chrName: chrName
+        }),
+        credentials: "include" // 如果你有使用 cookie 或 JWT 驗證
+      })
+      .then(response => response.json())
+      .then(data => {
+        renderTextToPage(data.content);
+      })
+      .catch(error => {
+        console.error("發生錯誤：", error);
+    });
 }
 setUp();
 async function cache(getTextVoice,lineIndex) {
@@ -75,13 +94,14 @@ async function cache(getTextVoice,lineIndex) {
         "progressLine":readingLine
     };
     try {
-        const response = await fetch(`/proccess`, {
+        const response = await fetch(`/api/proccess`, {
             method: 'POST',
             mode: 'cors',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            credentials: "include"
         });
         
         // 將回應轉為 Blob (音檔)
@@ -266,12 +286,4 @@ function resumeAutoScroll() {
     scrollToCurrentLine(readingLine); // 滾動到當前朗讀行
 }
 
-async function logout() {
-    await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"  // 讓 Cookie 被正確刪除
-    });
-
-    console.log("登出成功");
-}
 

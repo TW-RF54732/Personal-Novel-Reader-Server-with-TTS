@@ -88,7 +88,8 @@ def favicon():
     )
 
 #需要更改
-@app.route("/proccess",methods=['POST'])
+@app.route("/api/proccess",methods=['POST'])
+@jwt_required()
 def call_VITS_API():
     data = request.get_json()
     print(data)
@@ -103,18 +104,6 @@ def call_VITS_API():
         as_attachment=True,
         download_name="processed.wav"
     )
-
-@app.route('/get_txt',methods=['POST'])
-@jwt_required()
-def get_txt():
-    data = request.get_json()
-    currentUser = get_jwt_identity()
-    user = getUser(currentUser)
-    bookName = data.get("bookName")
-    chrName = data.get("chrName")
-    bookFolderPath = os.path.join(USER_DIR,user.user_id,rt.b64Encode(bookName))
-    
-    return send_file("users/exAccount/testBook/3714.txt", as_attachment=True)
 
 @app.route('/getProgress',methods=['GET'])
 def showProgress():
@@ -384,12 +373,44 @@ def uploadChr():
     saved_files = []
     for file in files:
         if file.filename.endswith('.txt'):
-            file_path = os.path.join(USER_BOOK_DIR, rt.b64Encode(file.filename))
+            file_path = os.path.join(USER_BOOK_DIR, rt.b64Encode(file.filename)+'.txt')
             file.save(file_path)
             saved_files.append(file.filename)
 
     # init proccess
     return jsonify({"saved": saved_files}), 200
+
+@app.route('/api/user/book/getChr',methods=["POST"])
+@jwt_required()
+def getChr():
+    data = request.get_json()
+    bookName = data.get("bookName")
+    chr_name = data.get("chrName")
+    current_user = get_jwt_identity()
+    user = getUser(current_user)
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 401
+    
+    if not bookName or not chr_name:
+        return jsonify({"error": "缺少參數"}), 400
+    
+    b64BookName = rt.b64Encode(bookName)
+    b64ChrName = rt.b64Encode(chr_name)
+    USER_BOOK_DIR = os.path.join(USER_DIR,user.user_id,"books",b64BookName)
+    USER_TEXT_PATH = os.path.join(USER_BOOK_DIR,b64ChrName+".txt")
+    print(USER_TEXT_PATH)
+    if not os.path.exists(USER_BOOK_DIR) :
+        return jsonify({"error": "書名或章節名有誤或不存在"}), 400
+    
+    try:
+        with open(USER_TEXT_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+        return jsonify({"content": content}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 # @app.route('/api/user/book/getChrList',methods=["POST"])
 # @jwt_required()
@@ -407,7 +428,7 @@ def uploadChr():
 
 #     user_book_path = os.path.join(USER_DIR,user.user_id,'books')
 #     dirName = data.get('folderName')
-    b64dirName = rt.b64Encode(dirName)
+#     b64dirName = rt.b64Encode(dirName)
 
 
 
@@ -529,24 +550,7 @@ def proccess_URL(data):
     textLanguage = data.get("text_language")    # 要合成的文字語言
     progressLine = data.get("progressLine")
     url = f'http://192.168.1.115:9880?refer_wav_path={referWavPath}&prompt_text={referText}&prompt_language={promptLanguage}&text={text}&text_language={textLanguage}'
-    print(saveProgress(progressLine))
     return url
-
-def saveProgress(progressLine,json_path):
-    if not os.path.exists(json_path):
-        return {"error": "進度檔不存在"}
-    
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    
-    if "progress" in data:
-        data["progress"] = progressLine
-    else:
-        return {"error": "設定項目不存在"}
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-
-
 
 
 def getUser(userName):

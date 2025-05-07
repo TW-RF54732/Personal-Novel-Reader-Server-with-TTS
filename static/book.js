@@ -34,7 +34,18 @@ coverUpload.addEventListener("change", event => {
 });
 
 document.getElementById("startReading").addEventListener("click",e=>{
-  window.location.href = "/reading";
+  let obj = book_data.progress;
+  const keys = Object.keys(obj);  // ["chapter1"]
+  const chrName = keys[0];  
+  if(Object.keys(obj).length === 0 && obj.constructor === Object){
+    alert("沒有選取進度");
+    return;
+  }
+  if(isProgressExits(chrName)){
+    window.location.href = "/reading";
+    return;
+  }
+  alert("進度章節不存在");
 });
 
 function getCover(){
@@ -90,9 +101,13 @@ function uploadFiles() {
   .then(res => res.json())
   .then(data => {
     console.log("伺服器回傳：", data);
-    book_data['order'] = data["saved"];
+    book_data['order'].push(...data["saved"]);
     localStorage.setItem("currentBookData",JSON.stringify(book_data));
     refleshRenderChr();
+    if(Object.keys(book_data.progress).length === 0 && book_data.progress.constructor === Object){
+      initProgress();//自帶saveNewData()
+      return;
+    }
     saveNewData();
   })
   .catch(err => {
@@ -111,7 +126,7 @@ function addListItem(listString){
 
 function refleshRenderChr(){
   book_data['order'].forEach(element => {
-    addListItem(element);
+    addListItem(element.replace(/\.txt$/, ""));
   });
 }
 
@@ -159,6 +174,10 @@ function updateFolderNameInUserData(oldName, newName) {
   }
 }
 
+function isProgressExits(chrName){
+  const bookList = book_data.order;
+  return bookList.includes(chrName);
+}
 
 function renameBookFolder(newName) {
   fetch('/api/user/renameBookFolder', {
@@ -204,7 +223,7 @@ async function saveNewData() {
 
 function initProgress(){
   const chrList = book_data.order;
-  if(chrList){
+  if(Object.keys(chrList).length === 0 && chrList.constructor === Object){
     alert('沒有章節');
     return;
   }

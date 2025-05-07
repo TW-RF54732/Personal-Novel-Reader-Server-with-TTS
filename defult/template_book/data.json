@@ -1,6 +1,6 @@
 {
     "bookName":"",
-    "progress":0,
+    "progress":{},
     "bookMarks":[{}],
     "order":[]  
 }
