@@ -176,6 +176,7 @@ function updateFolderNameInUserData(oldName, newName) {
 
 function isProgressExits(chrName){
   const bookList = book_data.order;
+  ShowProgress();
   return bookList.includes(chrName);
 }
 
@@ -221,6 +222,13 @@ async function saveNewData() {
   .catch(error => console.log(error));
 }
 
+function ShowProgress(){
+  const progressDisplay = document.getElementById('progressShow');
+  const progress = book_data.progress;
+  const [[chrName, lineNumber]] = Object.entries(progress);
+  progressDisplay.innerHTML = `${chrName.replace(/\.txt$/, "")}-${lineNumber}`;
+}
+
 function initProgress(){
   const chrList = book_data.order;
   if(Object.keys(chrList).length === 0 && chrList.constructor === Object){
@@ -238,4 +246,5 @@ window.onload = function(){
   title.innerText = bookName;
   getCover();
   refleshRenderChr();
+  ShowProgress();
 }

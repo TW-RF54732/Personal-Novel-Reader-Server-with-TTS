@@ -12,17 +12,13 @@ let skipMode=false;
 let autoScroll = true,isAutoScrolling = false;
 
 //TTS setting
-let referWavPath = "X:/vscode/GVITS/GPT-SoVITS-beta/GPT-SoVITS-beta0706/SetUp/Anoke/Anoke_SetupVoice.wav";//temp data, this sould be setup in server not client
-let referText = "那至少是有一点好处，跟你说，他除了为自己乞讨以外，他还为他朋友帮他去乞讨。";//temp data, this sould be setup in server not client
-let promptLanguage = "zh";  
 let textLanguage = "zh";
 
 const book_data = JSON.parse(localStorage.getItem("currentBookData"));
-//EventListener
-function renderTextToPage(text, targetElementId = 'textDisplay') {
-    // 將文字依行切開並過濾空白行
-    const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
 
+
+//EventListener
+function renderTextToPage(targetElementId = 'textDisplay') {
     // 將每一行渲染為 <p> 元素
     const html = lines.map((line, index) => 
         `<p class="lines" id="p${index}">${index + 1}: ${line}</p>`
@@ -44,19 +40,35 @@ document.getElementById("textDisplay").addEventListener("click", (event) => {
 
 
 //function
-async function getProgress() {
-    const getProgress = JSON.parse(localStorage.getItem("currentBookData")).progress
-    if(!getProgress){
-        alert("no book data");
-    }
-    return getProgress;
-}
 
-async function setUp(){
-    await fetchTxt();
-    pressCache();
-    readCtrl();
+function saveProgress(){
+    let progress = book_data.progress;
+    const keys = Object.keys(progress);  // ["chapter1"]
+    const chrName = keys[0];
+    progress[chrName] = readingLine;
+    
+    saveNewData()
 }
+async function saveNewData() {
+    fetch('/api/user/book/saveBookData',{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentBookData: book_data
+        }),
+        credentials:"include"
+    })
+    .then(response => console.log(response))
+    .catch(error => console.log(error));
+  }
+  
+// async function setUp(){
+//     await fetchTxt();
+//     pressCache();
+//     readCtrl();
+// }
+
+fetchTxt();
 async function fetchTxt() {
     const bookName = book_data.bookName;
     let progress = book_data.progress;
@@ -77,18 +89,19 @@ async function fetchTxt() {
       })
       .then(response => response.json())
       .then(data => {
-        renderTextToPage(data.content);
+        text = data.content
+        lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+        renderTextToPage();
+        pressCache();
+        readCtrl();
       })
       .catch(error => {
         console.error("發生錯誤：", error);
     });
 }
-setUp();
+// setUp();
 async function cache(getTextVoice,lineIndex) {
     const data = {
-        "refer_wav_path": referWavPath,
-        "prompt_text": referText,
-        "prompt_language": promptLanguage,
         "text": getTextVoice,
         "text_language": textLanguage,
         "progressLine":readingLine
@@ -172,6 +185,7 @@ async function readCtrl() {
         highLight(readingLine,readPrevious);
         scrollToCurrentLine(readingLine);
         await readtheline(readPointer);//朗讀
+        saveProgress();
         if(!skipMode[1]){
             readPointer = readNext;
         }

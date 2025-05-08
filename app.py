@@ -1,5 +1,8 @@
 #Main file! Start the server here.
+# custom py
 import readerTools as rt
+import TTS_API
+
 from flask import Flask ,request,send_file,send_from_directory,jsonify,make_response,redirect,url_for,render_template
 import requests
 import json
@@ -543,13 +546,9 @@ def saveBookData():
 #/book
 #Function
 def proccess_URL(data):
-    referWavPath = data.get("refer_wav_path")  # 音頻路徑
-    referText = data.get("prompt_text")        # 提示文字
-    promptLanguage = data.get("prompt_language")  # 提示語言
     text = data.get("text")                      # 要合成的文字
     textLanguage = data.get("text_language")    # 要合成的文字語言
-    progressLine = data.get("progressLine")
-    url = f'http://192.168.1.115:9880?refer_wav_path={referWavPath}&prompt_text={referText}&prompt_language={promptLanguage}&text={text}&text_language={textLanguage}'
+    url = TTS_API.makeTTS_URL_GET(text=text,textLanguage=textLanguage)
     return url
 
 
