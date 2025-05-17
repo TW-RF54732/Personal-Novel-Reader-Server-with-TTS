@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>設定頁面</title>
-    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='bootStrapCSS/bootstrap.min.css') }}" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-5">
@@ -42,7 +42,7 @@
     <button class="btn btn-primary mt-4" id="saveSettings">儲存設定</button>
 </div>
 
-<script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='bootStrapJS/bootstrap.bundle.min.js') }}"></script>
 <script>
     document.getElementById("saveSettings").addEventListener("click", function() {
         const settings = {
