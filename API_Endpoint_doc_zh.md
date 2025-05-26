@@ -47,7 +47,7 @@
 * **安全性**:
   * 密碼使用 `bcrypt` 進行雜湊處理。
   * JWT 使用自訂密鑰， token 有效期為 7 天。
-  * 開發環境中禁用 CSRF 保護和安全 Cookie (`JWT_COOKIE_SECURE` 和 `JWT_COOKIE_CSRF_PROTECT` 設為 `False`)。
+  * !!**注意**!!目前仍在測試階段，開發環境中禁用 CSRF 保護和安全 Cookie (`JWT_COOKIE_SECURE` 和 `JWT_COOKIE_CSRF_PROTECT` 設為 `False`)，如需要請手動開啟。
 
 ## 端點列表
 
