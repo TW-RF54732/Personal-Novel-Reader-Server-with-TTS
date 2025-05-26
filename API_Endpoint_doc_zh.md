@@ -13,7 +13,6 @@
    * [閱讀頁面 (`/reading`)](#%E9%96%B1%E8%AE%80%E9%A0%81%E9%9D%A2-reading)
    * [網站圖標 (`/favicon.ico`)](#%E7%B6%B2%E7%AB%99%E5%9C%96%E6%A8%99-faviconico)
    * [處理 API (`/api/proccess`)](#%E8%99%95%E7%90%86-api-apiproccess)
-   * [取得進度 (`/getProgress`)](#%E5%8F%96%E5%BE%97%E9%80%B2%E5%BA%A6-getprogress)
    * [註冊 API (`/api/register`)](#%E8%A8%BB%E5%86%8A-api-apiregister)
    * [登入 API (`/api/login`)](#%E7%99%BB%E5%85%A5-api-apilogin)
    * [登出 API (`/api/logout`)](#%E7%99%BB%E5%87%BA-api-apilogout)
@@ -524,8 +523,7 @@
   * 檔案: `avatar.png`, `userData.json`, `data.json`, `image.jpg`, 章節檔案 (`.txt`)。
 * **錯誤處理**: 許多端點缺乏對檔案操作或外部 API 失敗的穩健錯誤處理。
 * **安全性**: 開發環境中禁用 CSRF 保護和安全 Cookie，正式環境應啟用。
-* **改進建議**:
+* **仍須補足**:
   * 增加檔案缺失或外部 API 失敗的錯誤處理。
-  * 移除硬編碼路徑 (如 `/getProgress`)。
   * 更嚴格驗證檔案上傳 (大小、類型)。
   * 統一錯誤回應格式。
