@@ -108,14 +108,6 @@ def call_VITS_API():
         download_name="processed.wav"
     )
 
-@app.route('/getProgress',methods=['GET'])
-def showProgress():
-    json_path = os.path.join("users", "exAccount", "testBook", "progress.json")
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    if "progress" in data:
-        s = f'{data["progress"]}'
-        return str(s)
 #需要更改
 # API
 @app.route("/api/register", methods=["POST"])
