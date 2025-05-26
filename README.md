@@ -1,7 +1,4 @@
 # 使用TTS API的網頁版書庫
----
-# 🚧目前尚未完成🚧
----
 ## 功能
 1. 帳號登入和創建
 2. 新增書庫資料夾
@@ -36,7 +33,7 @@ cd .\web-reader-for-local-TTS-API\
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
->如果抱錯:`
+>如果報錯:`
 >Management_Install.ps1 cannot be loaded because the execution of scripts is disabled on this system.`
 >代表系統預設不能執行`PowerShell`檔案，更改設定後再執行
 >設定更改方式:https://stackoverflow.com/questions/4037939/powershell-says-execution-of-scripts-is-disabled-on-this-system

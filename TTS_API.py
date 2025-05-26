@@ -1,8 +1,8 @@
 TTS_URL = "127.0.0.1:9880"
 
 #TTS static Setting
-referWavPath = "D:/vscode/GVITS/GPT-SoVITS-beta/GPT-SoVITS-beta0706/SetUp/Anoke/Anoke_SetupVoice.wav";#temp data, this sould be setup in server not client
-referText = "那至少是有一点好处，跟你说，他除了为自己乞讨以外，他还为他朋友帮他去乞讨。";#temp data, this sould be setup in server not client
+referWavPath = "D:/vscode/GPT-SoVITS-beta1/Sample/proccessed/HaBE/感覺可以睡久一點我就睡了，然後醒來就已經下午兩點鐘了.wav";#temp data, this sould be setup in server not client
+referText = "感覺可以睡久一點我就睡了，然後醒來就已經下午兩點鐘了";#temp data, this sould be setup in server not client
 promptLanguage = "zh"
 
 def makeTTS_URL_GET(text,textLanguage,referWavPath = referWavPath,referText=referText,promptLanguage=promptLanguage):# GPT_SoVITS API
