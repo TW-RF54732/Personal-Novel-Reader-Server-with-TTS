@@ -54,3 +54,5 @@ python -m venv venv
 pip install -r .\requirements.txt
 python app.py
 ```
+# 文件
+[查看 API 文件](API_Endpoint_doc_zh.md)
