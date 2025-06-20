@@ -375,6 +375,35 @@ def uploadChr():
     # init proccess
     return jsonify({"saved": saved_files}), 200
 
+@app.route("/api/user/book/getChr",methods=["POST"])
+@jwt_required()
+def delChr():
+    data = request.get_json
+    bookName = data.get("bookName")
+    chr_name = data.get("chrName")
+    current_user = get_jwt_identity()
+    user = getUser(current_user)
+    if not user:
+        logoutResponse = make_response(jsonify({"error": "未授權"}))
+        unset_jwt_cookies(logoutResponse)
+        return logoutResponse, 401
+    
+    if not bookName or not chr_name:
+        return jsonify({"error": "缺少參數"}), 400
+    b64BookName = rt.b64Encode(bookName)
+    b64ChrName = rt.b64Encode(chr_name)
+    USER_BOOK_DIR = os.path.join(USER_DIR,user.user_id,"books",b64BookName)
+    USER_TEXT_PATH = os.path.join(USER_BOOK_DIR,b64ChrName+".txt")
+    print(USER_TEXT_PATH)
+    if not os.path.exists(USER_BOOK_DIR) :
+        return jsonify({"error": "書名或章節名有誤或不存在"}), 400
+
+    try:
+        os.remove(USER_TEXT_PATH)
+        return jsonify({f"success": "章節已被移除"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/user/book/getChr',methods=["POST"])
 @jwt_required()
 def getChr():
