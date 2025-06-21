@@ -65,6 +65,20 @@ function getCover(){
         console.error('Error fetching cover:', error);
     });
 }
+
+function removeChr(bookName,chrName){
+  fetch("/api/user/book/getChr", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          bookName: bookName,
+          chrName: chrName
+        }),
+        credentials: "include" // 如果你有使用 cookie 或 JWT 驗證
+      })
+}
 // document.getElementById("chapterList").addEventListener("dblclick", function (event) {
 //   if (event.target.tagName === "LI") {
 //     let text = event.target.firstChild.textContent.trim();
@@ -145,15 +159,12 @@ document.getElementById("confirmDelete").addEventListener("click", function () {
   if (deleteTarget) {
     deleteTarget.remove();
     deleteTarget = null; // 清空記錄
+    removeChr(bookName,deleteTarget.innerHTML);
   }
   let modalElement = document.getElementById("deleteConfirmModal");
   let modalInstance = bootstrap.Modal.getInstance(modalElement);
   modalInstance.hide(); // 手動關閉 Modal
 });
-
-function deleteChr(bookName){
-
-}
 
 function renameChr(){
 
