@@ -378,7 +378,7 @@ def uploadChr():
 @app.route("/api/user/book/getChr",methods=["POST"])
 @jwt_required()
 def delChr():
-    data = request.get_json
+    data = request.get_json()
     bookName = data.get("bookName")
     chr_name = data.get("chrName")
     current_user = get_jwt_identity()
