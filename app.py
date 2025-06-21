@@ -375,7 +375,7 @@ def uploadChr():
     # init proccess
     return jsonify({"saved": saved_files}), 200
 
-@app.route("/api/user/book/getChr",methods=["POST"])
+@app.route("/api/user/book/delChr",methods=["POST"])
 @jwt_required()
 def delChr():
     data = request.get_json()
